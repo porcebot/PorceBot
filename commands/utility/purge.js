@@ -101,6 +101,7 @@ module.exports = {
             const collector = interaction.channel.createMessageComponentCollector({ filter }); // 15-second time limit for demo
 
             collector.on('collect', async i => {
+
                 if (i.customId === 'cancel') {
                     await i.update({ content: 'The command has been cancelled.', components: [], embeds: [], ephemeral: true }); // Update the message to show cancellation and remove buttons
                     collector.stop('cancelled'); // Stop the collector
