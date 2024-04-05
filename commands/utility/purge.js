@@ -12,7 +12,7 @@ module.exports = {
         const guild = interaction.guild;
         const serverName = interaction.guild.name;
 
-        const roleNames = ["Twink", "Twunk", "Femboy", "Verified Cutie", "Bot"];
+        const roleNames = ["Twink", "Twunk", "Femboy", "Verified Cutie", "Bot", "Server Booster"];
         const roles = roleNames.map(roleName => guild.roles.cache.find(r => r.name === roleName)).filter(role => role !== undefined);
 
         // If none of the roles are found, reply accordingly
