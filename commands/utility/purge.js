@@ -75,7 +75,7 @@ module.exports = {
                 .setColor(0xFF001A) // You can set the color to whatever you prefer
                 .setTitle(`THE UGGOPURGENATOR 2000`)
                 .setThumbnail('https://i.imgur.com/tBi2qUC.png')
-                .setDescription(`Are you sure you want to kick all these users?`)
+                .setDescription(`Are you sure you want to kick all these users? Count: (${membersWithoutRole.length})`)
                 .addFields(
                     { name: 'These roles are unaffected:', value: `${roleNames.join(', ')}` },
                 )
@@ -88,7 +88,7 @@ module.exports = {
                 const start = i * chunkSize;
                 const end = start + chunkSize;
                 const chunk = membersWithoutRole.slice(start, end);
-                embed.addFields({ name: `Users (${membersWithoutRole.length})`, value: chunk.join('\n'), inline: true });
+                embed.addFields({ name: ` `, value: chunk.join('\n'), inline: true });
             }
 
             // Send the embed in a reply or follow-up
