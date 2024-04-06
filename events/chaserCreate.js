@@ -7,9 +7,9 @@ module.exports = {
         if (!interaction.isUserContextMenuCommand()) {
             return;
         }
-        if (interaction.commandName === 'Assign Verified') {
-            const rolesToAdd = ['Verified Cutie', 'Active']
-            const rolesToRemove = ['Chaser'];
+        if (interaction.commandName === 'Assign Chaser') {
+            const rolesToAdd = ['Chaser'];
+            const rolesToRemove = ['Active', 'Verified Cutie'];
             const member = await interaction.guild.members.fetch(interaction.targetId);
 
             /* Remove Roles */
@@ -41,7 +41,7 @@ module.exports = {
                     return;
                 }
             }
-            await interaction.reply({ content: 'Roles assigned successfully!', ephemeral: true });
+            await interaction.reply({ content: 'Roles adjusted successfully!', ephemeral: true });
         }
     },
 };
