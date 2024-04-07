@@ -1,4 +1,4 @@
-const { ActionRowBuilder, ButtonBuilder, ButtonStyle, SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits } = require('discord.js');
+const { ActionRowBuilder, ChannelType, ButtonBuilder, ButtonStyle, SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits } = require('discord.js');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -133,6 +133,17 @@ module.exports = {
                     // Confirm the action
                     await i.update({ content: ' ', embeds: [kickedEmbed], components: [], ephemeral: true });
                     collector.stop('confirmed'); // Stop the collector
+
+                    const modBotChannel = interaction.guild.channels.cache.find(channel => channel.name === 'mod-bot' && channel.type === ChannelType.GuildText);
+                    if (!modBotChannel) {
+                        console.log("Could not find the #mod-bot channel.");
+                        return;
+                    }
+
+                    // Compose a message about the interaction
+                    const interactionInfo = `**${interaction.user.globalName}** (${interaction.user.tag}) used the command '${interaction.commandName}' to kick users. Amount kicked: ${kickedCount}`;
+                    // Send the message to the #mod-bot channel
+                    await modBotChannel.send({ content: interactionInfo }).catch(console.error);
                 }
             });
         } catch (error) {
