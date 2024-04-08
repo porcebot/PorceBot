@@ -7,6 +7,9 @@ module.exports = {
         if (!interaction.isUserContextMenuCommand()) {
             return;
         }
+        if (interaction.commandName === 'Boycourt') {
+            return;
+        }
 
         // Fetch the #mod-bot channel
         const modBotChannel = interaction.guild.channels.cache.find(channel => channel.name === 'mod-bot' && channel.type === ChannelType.GuildText);
