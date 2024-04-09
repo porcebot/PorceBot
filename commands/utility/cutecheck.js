@@ -1,11 +1,10 @@
-const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
+const { SlashCommandBuilder } = require('discord.js');
 const { getMessages } = require('../../utils/messageCache');
 
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('cutecheck')
         .setDescription('Check how cute someone is!')
-        .setDefaultMemberPermissions(PermissionFlagsBits.KickMembers)
         .addUserOption(option =>
             option.setName('target')
                 .setDescription('The user you want to check')
