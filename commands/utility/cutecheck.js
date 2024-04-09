@@ -23,8 +23,10 @@ module.exports = {
         let cuteScore = 3;
         let cuteMessage = "";
         let cuteHearts = "";
+        let cuteWordsUsed = [];
+        let badWordsUsed = [];
 
-        const cuteKeyWords = [':3', '<3', '~', '^_^', ':D', ':hoonicomfy:', ':plead:', ':hooniawe:', ':mafumafunya:', ':nod:', ':konatayippee:', ':hype:', 'cute', 'meow', 'love', 'comfy']
+        const cuteKeyWords = [':3', '<3', '^_^', ':D', ':hoonicomfy:', ':plead:', ':hooniawe:', ':mafumafunya:', ':nod:', ':konatayippee:', ':hype:', 'cute', 'meow', 'love', 'comfy', 'hehe', ':heart:']
         const badKeyWords = ['hangover', 'women', 'woman', 'twinkdeath', 'retard', 'suicid', 'chud', 'faggot']
 
         try {
@@ -35,11 +37,13 @@ module.exports = {
                 cuteKeyWords.forEach(keyword => {
                     if (message.content.includes(keyword.toLowerCase())) {
                         cuteScore++; // Increment the cuteScore for each keyword found
+                        cuteWordsUsed.push(keyword)
                     }
                 });
                 badKeyWords.forEach(keyword => {
                     if (message.content.includes(keyword.toLowerCase())) {
                         cuteScore--; // Decrement the cuteScore for each bad keyword found
+                        badWordsUsed.push(keyword)
                     }
                 });
             });
@@ -84,6 +88,8 @@ module.exports = {
             cuteHearts += "🖤";
         }
 
+
+
         const { EmbedBuilder } = require('discord.js');
 
         const confessionEmbed = new EmbedBuilder()
@@ -92,6 +98,14 @@ module.exports = {
             .setDescription(`${member}\n*Your messages in this channel have been analyzed...* \n\nYour score: **${cuteScore}**\n ${cuteHearts}\n\n **${cuteMessage}**`)
             .setTimestamp()
             .setImage(avatarUrl);
+
+
+        if (cuteWordsUsed.length > 0) {
+            confessionEmbed.addFields({ name: 'Cute words? 💌', value: cuteWordsUsed.join(', '), inline: true })
+        }
+        if (badWordsUsed.length > 0) {
+            confessionEmbed.addFields({ name: 'Bad words? 💢', value: badWordsUsed.join(', '), inline: true })
+        }
 
         if (targetChannel) {
             // Send the confession as a message to the target channel
