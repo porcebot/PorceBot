@@ -25,7 +25,7 @@ module.exports = {
         let cuteHearts = "";
 
         const cuteKeyWords = [':3', '<3', '~', '^_^', ':D', ':hoonicomfy:', ':plead:', ':hooniawe:', ':mafumafunya:', ':nod:', ':konatayippee:', ':hype:', 'cute', 'meow', 'love', 'comfy']
-        const badKeyWords = ['its over', 'hangover', 'women', 'woman', 'twinkdeath', 'retard', 'suicid', 'chud']
+        const badKeyWords = ['hangover', 'women', 'woman', 'twinkdeath', 'retard', 'suicid', 'chud', 'faggot']
 
         try {
             const messages = await getMessages(interaction, targetChannelId)
@@ -88,7 +88,7 @@ module.exports = {
 
         const confessionEmbed = new EmbedBuilder()
             .setColor(0x0099ff)
-            .setTitle('Cute Check 🤖 Default cuteness: 3')
+            .setTitle('Cute Check 🤖 \nDefault Cuteness:  3')
             .setDescription(`${member}\n*Your messages in this channel have been analyzed...* \n\nYour score: **${cuteScore}**\n ${cuteHearts}\n\n **${cuteMessage}**`)
             .setTimestamp()
             .setImage(avatarUrl);
