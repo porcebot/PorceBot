@@ -13,9 +13,18 @@ module.exports = {
             .setTitle('Anonymous Confession');
 
         // Add components to modal
+        const userNameInput = new TextInputBuilder()
+            .setMaxLength(280)
+            .setMinLength(1)
+            .setRequired(false)
+            .setPlaceholder('Anonymous')
+            .setCustomId('confessionUserNameInput')
+            .setLabel("Name (optional)")
+            // Paragraph means multiple lines of text.
+            .setStyle(TextInputStyle.Short);
 
-        const hobbiesInput = new TextInputBuilder()
-            .setMaxLength(100)
+        const confessionInput = new TextInputBuilder()
+            .setMaxLength(280)
             .setMinLength(1)
             .setPlaceholder('I want to marry Porce!')
             .setRequired(true)
@@ -26,10 +35,11 @@ module.exports = {
 
         // An action row only holds one text input,
         // so you need one action row per text input.
-        const secondActionRow = new ActionRowBuilder().addComponents(hobbiesInput);
+        const firstActionRow = new ActionRowBuilder().addComponents(userNameInput);
+        const secondActionRow = new ActionRowBuilder().addComponents(confessionInput);
 
         // Add inputs to the modal
-        modal.addComponents(secondActionRow);
+        modal.addComponents(firstActionRow, secondActionRow);
 
         // Show the modal to the user
         await interaction.showModal(modal);

@@ -10,8 +10,15 @@ module.exports = {
         }
         if (interaction.customId === 'confessionModal') {
             const input = interaction.fields.getTextInputValue('confessionInput');
+            const usernameField = interaction.fields.getTextInputValue('confessionUserNameInput');
             // Check for emojis
             const confession = await replaceTextWithEmojis(input, interaction.guild);
+
+            let userName = 'Anonymous'
+
+            if (usernameField) {
+                userName = usernameField;
+            }
 
             // Specify the ID of the target channel where you want to send the confession
             const targetChannelId = interaction.channelId;
@@ -22,7 +29,7 @@ module.exports = {
 
             const confessionEmbed = new EmbedBuilder()
                 .setColor(0x0099ff)
-                .setTitle('Anonymous Confession')
+                .setTitle(userName)
                 .setDescription(confession)
                 .setTimestamp()
                 .setThumbnail('https://i.imgur.com/ZIAcuzg.gif');
