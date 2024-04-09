@@ -35,13 +35,13 @@ module.exports = {
             userMessages.forEach(message => {
                 // Check each keyword in the cuteKeyWords array
                 cuteKeyWords.forEach(keyword => {
-                    if (message.content.includes(keyword.toLowerCase())) {
+                    if (message.content.toLowerCase().includes(keyword.toLowerCase())) {
                         cuteScore++; // Increment the cuteScore for each keyword found
                         cuteWordsUsed.push(keyword)
                     }
                 });
                 badKeyWords.forEach(keyword => {
-                    if (message.content.includes(keyword.toLowerCase())) {
+                    if (message.content.toLowerCase().includes(keyword.toLowerCase())) {
                         cuteScore--; // Decrement the cuteScore for each bad keyword found
                         badWordsUsed.push(keyword)
                     }
