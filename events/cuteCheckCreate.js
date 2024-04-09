@@ -13,7 +13,7 @@ module.exports = {
             const targetChannel = interaction.client.channels.cache.get(targetChannelId);
             const member = await interaction.guild.members.fetch(interaction.targetId);
             const avatarUrl = member.user.displayAvatarURL({ dynamic: true, size: 128 });
-            let cuteScore = 2;
+            let cuteScore = 3;
             let cuteMessage = "";
             let cuteHearts = "";
 
