@@ -17,8 +17,8 @@ module.exports = {
             let cuteMessage = "";
             let cuteHearts = "";
 
-            const cuteKeyWords = [':3', '<3', '~', '^_^', ':D', ':hoonicomfy:', ':plead:', ':hooniawe:', ':mafumafunya:', ':nod:', ':konatayippee:', ':hype:']
-            const badKeyWords = ['faggot', 'kill', 'its over', 'hangover', ':(', ':hoonismug:', 'fuck', 'dick', 'cum', 'cock', 'women', 'woman', 'twinkdeath', 'retard', 'suicid', 'chud']
+            const cuteKeyWords = [':3', '<3', '~', '^_^', ':D', ':hoonicomfy:', ':plead:', ':hooniawe:', ':mafumafunya:', ':nod:', ':konatayippee:', ':hype:', 'cute', 'meow', 'love', 'comfy']
+            const badKeyWords = ['faggot', 'kill', 'its over', 'hangover', ':hoonismug:', 'women', 'woman', 'twinkdeath', 'retard', 'suicid', 'chud']
 
             try {
                 const messages = await getMessages(interaction, targetChannelId)
