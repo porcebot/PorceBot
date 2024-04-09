@@ -7,7 +7,7 @@ module.exports = {
         if (!interaction.isUserContextMenuCommand()) {
             return;
         }
-        if (interaction.commandName === 'Boycourt') {
+        if (interaction.commandName === 'Boycourt' || interaction.commandName === 'Cute Check') {
             return;
         }
 
