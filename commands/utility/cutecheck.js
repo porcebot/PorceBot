@@ -26,7 +26,7 @@ module.exports = {
         let cuteWordsUsed = [];
         let badWordsUsed = [];
 
-        const cuteKeyWords = [':3', '<3', '^_^', ':D', ':hoonicomfy:', ':plead:', ':hooniawe:', ':mafumafunya:', ':nod:', ':konatayippee:', ':hype:', 'cute', 'meow', 'love', 'comfy', 'hehe', ':heart:']
+        const cuteKeyWords = [':3', '<3', '^_^', ':D', ':hoonicomfy:', ':plead:', ':hooniawe:', ':mafumafunya:', ':nod:', ':konatayippee:', ':hype:', 'meow', 'love', 'comfy', 'hehe', ':heart:']
         const badKeyWords = ['hangover', 'women', 'woman', 'twinkdeath', 'retard', 'suicid', 'chud', 'faggot']
 
         try {
