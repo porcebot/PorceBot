@@ -82,7 +82,7 @@ module.exports = {
             const confessionEmbed = new EmbedBuilder()
                 .setColor(0x0099ff)
                 .setTitle('Cute Check 🤖')
-                .setDescription(`*Your messages in this channel have been analyzed...* \n\nYour score: **${cuteScore}**\n ${cuteHearts}\n\n **${cuteMessage}**`)
+                .setDescription(`${member}\n*Your messages in this channel have been analyzed...* \n\nYour score: **${cuteScore}**\n ${cuteHearts}\n\n **${cuteMessage}**`)
                 .setTimestamp()
                 .setImage(avatarUrl);
 
