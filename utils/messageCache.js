@@ -12,7 +12,7 @@ async function fetchAndCacheMessages(interaction, targetChannelId) {
     });
 
     // Set a cache expiration (e.g., 10 minutes)
-    setTimeout(() => messageCache.delete(targetChannelId), 5 * 60 * 1000); // 5 minutes
+    setTimeout(() => messageCache.delete(targetChannelId), 1 * 60 * 1000); // 1 minute
 
     return messages;
 }
@@ -20,7 +20,7 @@ async function fetchAndCacheMessages(interaction, targetChannelId) {
 async function getMessages(interaction, targetChannelId) {
     if (messageCache.has(targetChannelId)) {
         const cacheEntry = messageCache.get(targetChannelId);
-        const isStale = (Date.now() - cacheEntry.fetchedAt) > (5 * 60 * 1000); // 5 minutes
+        const isStale = (Date.now() - cacheEntry.fetchedAt) > (1 * 60 * 1000); // 1 minute
 
         if (!isStale) {
             return cacheEntry.messages;
