@@ -42,8 +42,11 @@ module.exports = {
                 .setTitle(userName)
                 .setDescription(confession)
                 .setTimestamp()
-                .setImage(imageField)
                 .setThumbnail('https://i.imgur.com/ZIAcuzg.gif');
+
+            if (imageField) {
+                confessionEmbed.setImage(imageField)
+            }
 
             if (targetChannel) {
                 // Send the confession as a message to the target channel
