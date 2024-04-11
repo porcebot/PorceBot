@@ -1,5 +1,5 @@
-const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
-const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
+const { SlashCommandBuilder } = require('discord.js');
+const { fetchPopularGIFs } = require('../../utils/tenorSearchParams');
 require('dotenv').config();
 const tenor_token = process.env.TENOR_TOKEN;
 const client_key = process.env.CLIENT_ID;
@@ -35,15 +35,18 @@ module.exports = {
 
             const input = interaction.options.getString('question');
             const cat = "cat";
-            const search_limit = 20;
+            const search_limit = 8;
             const user = interaction.user;
             //const search_fluff = ["tired", "silly", "exhausted", "kiss", "love", "fast", "cute", "paws", "hug", "sus", "stare", "smile", "slap", "yapping", "ponder", "chill", "lick", "dance", "yippee", "shock", "cozy", "snack"]
             const search_fluff = ["no", "yes", "maybe"]
             //const answer_fluff = ["This is what PorceBot has to say about it...", "What does PorceBot think? Well...", "PorceBot answered with...", "Well, you see...", ""]
             const index = Math.floor(Math.random() * search_fluff.length);
             const search_term = cat + " " + search_fluff[index];
-            const response = await fetch("https://tenor.googleapis.com/v2/search?q=" + search_term + "&key=" + tenor_token + "&client_key=" + client_key + "&limit=" + search_limit);
-            const data = await response.json();
+            //const response = await fetch("https://tenor.googleapis.com/v2/search?q=" + search_term + "&key=" + tenor_token + "&client_key=" + client_key + "&limit=" + search_limit);
+            const data = await fetchPopularGIFs(search_term, tenor_token, client_key, search_limit);
+            if (!data) {
+                await interaction.reply({ content: "An error has occured. Please try again later.", ephemeral: true });
+            }
             const randomIndex = Math.floor(Math.random() * data.results.length);
             const inputWithQuestionMark = ensureQuestionMark(input)
 
