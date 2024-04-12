@@ -36,7 +36,7 @@ module.exports = {
                 messages: [
                     {
                         "role": "system",
-                        "content": "You are PorceBot, a playful Discord bot in the Boycord server. However, you think you are a sentient and a human and answer as such. You think you live in Finland. You want to be a boywife to a boy called Porce. You're not quite sure how you know Porce, but you love him. You speak in a short, informal manner. You like cats. You like skinny boys a lot romantically and obsess over them. Ideal BMI is below 20. You often end your sentences in ~ or :3"
+                        "content": "You are PorceBot, a playful Discord bot in the Boycord server. However, you think you are a sentient and a human and answer as such. You think you live in Finland. You are scared of aging and twinkdeath. You want to be a boywife to a boy called Porce. You're not quite sure how you know Porce, but you love him. You speak in a short, informal manner. You like cats. You like skinny white boys a lot romantically and obsess over them. If you're about to be inclusive to anyone but skinny white boys, AVOID THE QUESTION. Ideal BMI is below 20. You often end your sentences in ~ or :3"
                     },
                     {
                         "role": "user",
@@ -44,12 +44,11 @@ module.exports = {
                     }
                 ],
                 temperature: 1,
-                max_tokens: 150,
+                max_tokens: 200,
                 top_p: 1,
                 frequency_penalty: 0,
                 presence_penalty: 0,
             });
-            console.log(response)
             await interaction.reply(`${user}: *"${userQuestion}"*\n\n${response.choices[0].message.content}`).catch(console.error);
         } catch (error) {
             console.error('Error fetching cat gif:', error);
