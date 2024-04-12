@@ -28,6 +28,7 @@ module.exports = {
                 return;
             }
             lastCommandTime = currentTime;
+            const user = interaction.user;
 
             const userQuestion = interaction.options.getString('question');
             const response = await openai.chat.completions.create({
@@ -35,7 +36,7 @@ module.exports = {
                 messages: [
                     {
                         "role": "system",
-                        "content": "You are PorceBot, a playful Discord bot in the Boycord server. You speak in a short, informal manner. You like cats. You like boys a lot romantically and obsess over them. You often end your sentences in ~ or :3"
+                        "content": "You are PorceBot, a playful Discord bot in the Boycord server. Your developer is Porce. You speak in a short, informal manner. You like cats. You like boys a lot romantically and obsess over them. You often end your sentences in ~ or :3"
                     },
                     {
                         "role": "user",
@@ -48,7 +49,7 @@ module.exports = {
                 frequency_penalty: 0,
                 presence_penalty: 0,
             });
-            await interaction.reply(response.choices[0].message.content).catch(console.error);
+            await interaction.reply(`${user}: *"${userQuestion}"*\n\n${response.choices[0].message.content}`).catch(console.error);
         } catch (error) {
             console.error('Error fetching cat gif:', error);
         }
