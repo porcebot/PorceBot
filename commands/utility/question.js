@@ -61,7 +61,7 @@ module.exports = {
             const response = await openai.chat.completions.create({
                 model: "gpt-3.5-turbo",
                 messages: conversationArray,
-                temperature: 1,
+                temperature: 1.15,
                 max_tokens: 256,
                 top_p: 1,
                 frequency_penalty: 0,
