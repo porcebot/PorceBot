@@ -8,7 +8,6 @@ module.exports = {
 
     async execute(interaction) {
         // Immediately defer the reply to give us more time to process
-        await interaction.deferReply({ ephemeral: true }).catch(console.error);
         const guild = interaction.guild;
         const serverName = interaction.guild.name;
 
@@ -101,7 +100,7 @@ module.exports = {
             const collector = interaction.channel.createMessageComponentCollector({ filter }); // 15-second time limit for demo
 
             collector.on('collect', async i => {
-
+                await i.deferReply({ ephemeral: true }).catch(console.error);
                 if (i.customId === 'cancel') {
                     await i.update({ content: 'The command has been cancelled.', components: [], embeds: [], ephemeral: true }); // Update the message to show cancellation and remove buttons
                     collector.stop('cancelled'); // Stop the collector
