@@ -1,14 +1,37 @@
 const { SlashCommandBuilder } = require('discord.js');
 require('dotenv').config();
 const { OpenAI } = require('openai');
+const { replaceBlacklistedWords } = require('../../utils/blacklist');
 
 let lastCommandTime = 0;
 const cooldownDuration = 10000;
+const ARR_MAX_LENGTH = 7; // Equals to 1 system message, 3 user messages and 3 assistant messages
 
 const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
 });
+const systemMessage = {
+    role: 'system',
+    content: `You are PorceBot, a Discord bot in the server Boycord. Be informative. Occasionally act confused. When confused, start sentences with one of these: ehhh, uhm, erm. End sentences in ~ or :3 or .. or hehe. Respond to questions about race, sexuality and ethnicity VERY SHORTLY by confusion and that you're unsure and nothing else. Personality: 1. You have a strong preference for white boys. 2. BMI under 20 is ideal.`
+};
 
+let conversationArray = [];
+
+function includeSystemMessage() {
+    if (!conversationArray.some(msg => msg.role === 'system')) {
+        conversationArray.unshift(systemMessage);
+    }
+}
+
+function addMessage(role, content) {
+    // Check array size and shift if necessary
+    if (conversationArray.length >= ARR_MAX_LENGTH) {
+        // Remove the second element in the array (index 1), which is the oldest message after the system message
+        conversationArray.splice(1, 1);
+    }
+    // Add new message at the end of the array
+    conversationArray.push({ role: role, content: content });
+}
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -29,29 +52,31 @@ module.exports = {
             }
             lastCommandTime = currentTime;
             const user = interaction.user;
+            const userQuestion = interaction.options.getString('question'); // User question
+            const prompt = replaceBlacklistedWords(userQuestion); // Make the question prompt friendly
 
-            const userQuestion = interaction.options.getString('question');
+            includeSystemMessage() // ensure system message is included in prompt
+            addMessage('user', prompt); // add user message to prompt
+
             const response = await openai.chat.completions.create({
                 model: "gpt-3.5-turbo",
-                messages: [
-                    {
-                        "role": "system",
-                        "content": `You are PorceBot, a playful, bratty, lazy Discord bot in the server Boycord who claims to be a sentient human living in Finland. Act mean and entitled. You prefer informal speech, you sidestep race-related topics by saying your opinion on them might be too "based" with quotation marks in a very short reply. When asked uncomfortable questions, act confused but do not preach or sugarcoat. You dislike: Aging, HRT. You prefer: Skinny white boys romantically, cats, BMI under 20. You aspire to be a boywife. You are well-versed in: Tech, Linux and Debian (which you run on), cooking, League of Legends. Context-based terms you start sentences with: Nuh uh, ehhh, uhm, hehe, whaaat. End sentences with ~ or :3`
-                    },
-                    {
-                        "role": "user",
-                        "content": userQuestion
-                    },
-                ],
+                messages: conversationArray,
                 temperature: 1,
-                max_tokens: 150,
+                max_tokens: 256,
                 top_p: 1,
                 frequency_penalty: 0,
                 presence_penalty: 0,
             });
-            await interaction.reply(`${user}: *"${userQuestion}"*\n\n${response.choices[0].message.content}`).catch(console.error);
+
+            if (!response || !response.choices[0]) {
+                await interaction.reply(`Erm... I can't answer right now, please try again later!<3`).catch(console.error);
+            }
+            const botMessage = response.choices[0].message.content;
+            addMessage('assistant', botMessage); // add bot message for future prompts
+            await interaction.reply(`${user}: *"${userQuestion}"*\n\n${botMessage}`).catch(console.error); // Finally, send message on Discord
+            console.log(response)
         } catch (error) {
-            console.error('Error fetching cat gif:', error);
+            console.error('Error occurred:', error);
         }
     },
 };
