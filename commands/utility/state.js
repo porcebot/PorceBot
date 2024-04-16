@@ -69,7 +69,7 @@ module.exports = {
                 await i.reply({
                     content: 'Select your state:',
                     components: [newStateRow],
-                    ephemeral: true // This menu is only visible to the user
+                    ephemeral: false // This menu is only visible to the user
                 });
             }
         });
