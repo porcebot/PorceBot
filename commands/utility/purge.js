@@ -7,6 +7,7 @@ module.exports = {
         .setDefaultMemberPermissions(PermissionFlagsBits.KickMembers),
 
     async execute(interaction) {
+        await interaction.deferReply({ ephemeral: true }).catch(console.error);
         // Immediately defer the reply to give us more time to process
         const guild = interaction.guild;
         const serverName = interaction.guild.name;
@@ -100,7 +101,6 @@ module.exports = {
             const collector = interaction.channel.createMessageComponentCollector({ filter }); // 15-second time limit for demo
 
             collector.on('collect', async i => {
-                await i.deferReply({ ephemeral: true }).catch(console.error);
                 if (i.customId === 'cancel') {
                     await i.update({ content: 'The command has been cancelled.', components: [], embeds: [], ephemeral: true }); // Update the message to show cancellation and remove buttons
                     collector.stop('cancelled'); // Stop the collector
@@ -130,7 +130,7 @@ module.exports = {
                         )
 
                     // Confirm the action
-                    await i.update({ content: ' ', embeds: [kickedEmbed], components: [], ephemeral: true });
+                    await interaction.editReply({ content: ' ', embeds: [kickedEmbed], components: [], ephemeral: true });
                     collector.stop('confirmed'); // Stop the collector
 
                     const modBotChannel = interaction.guild.channels.cache.find(channel => channel.name === 'mod-bot' && channel.type === ChannelType.GuildText);
