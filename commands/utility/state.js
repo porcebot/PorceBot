@@ -31,7 +31,7 @@ module.exports = {
         await interaction.reply({
             content: 'Pick a state range in the United States.',
             components: [row],
-            ephemeral: true
+            ephemeral: false
         });
 
 
@@ -69,7 +69,7 @@ module.exports = {
                 await i.reply({
                     content: 'Select your state:',
                     components: [newStateRow],
-                    ephemeral: false // This menu is only visible to the user
+                    ephemeral: true // This menu is only visible to the user
                 });
             }
         });
