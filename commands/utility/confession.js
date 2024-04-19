@@ -6,8 +6,6 @@ module.exports = {
         .setDescription('Make an anonymous confession!'),
 
     async execute(interaction) {
-        // Immediately defer the reply to give us more time to process  
-
         const modal = new ModalBuilder()
             .setCustomId('confessionModal')
             .setTitle('Anonymous Confession');
@@ -47,6 +45,7 @@ module.exports = {
         const firstActionRow = new ActionRowBuilder().addComponents(userNameInput);
         const secondActionRow = new ActionRowBuilder().addComponents(imageInput);
         const thirdActionRow = new ActionRowBuilder().addComponents(confessionInput);
+
 
         // Add inputs to the modal
         modal.addComponents(firstActionRow, secondActionRow, thirdActionRow);

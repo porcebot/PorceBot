@@ -1,4 +1,4 @@
-const { Events } = require('discord.js');
+const { Events, ButtonStyle, ButtonBuilder, ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle } = require('discord.js');
 const { replaceTextWithEmojis } = require('../utils/parseEmoji');
 
 module.exports = {
@@ -44,17 +44,54 @@ module.exports = {
                 .setTimestamp()
                 .setThumbnail('https://i.imgur.com/ZIAcuzg.gif');
 
+            const actionButton = new ButtonBuilder()
+                .setCustomId(interaction.id)
+                .setLabel('Guess Who?')
+                .setStyle(ButtonStyle.Secondary);
+
+            const row = new ActionRowBuilder()
+                .addComponents(actionButton);
+
             if (imageField) {
                 confessionEmbed.setImage(imageField)
             }
 
             if (targetChannel) {
                 // Send the confession as a message to the target channel
-                await targetChannel.send({ embeds: [confessionEmbed] });
+                message = await targetChannel.send({ embeds: [confessionEmbed], components: [row] });
                 await interaction.reply({ content: 'Your confession was received and posted!', ephemeral: true });
             } else {
                 await interaction.reply({ content: 'There was an error processing your confession.', ephemeral: true });
             }
+
+            const filter = i => i.customId === interaction.id;
+            const collector = interaction.channel.createMessageComponentCollector({ filter });
+
+            collector.on('collect', async i => {
+                console.log(i.message.id)
+                if (i.isButton() && i.customId === interaction.id) {
+                    const modal = new ModalBuilder()
+                        .setCustomId('guessModal')
+                        .setTitle('Who made this confession?');
+
+                    // Add components to modal
+                    const userNameInput = new TextInputBuilder()
+                        .setMaxLength(280)
+                        .setMinLength(1)
+                        .setRequired(true)
+                        .setPlaceholder('Anonymous')
+                        .setCustomId('memberInput')
+                        .setLabel("Username")
+                        // Paragraph means multiple lines of text.
+                        .setStyle(TextInputStyle.Short);
+
+                    const firstActionRow = new ActionRowBuilder().addComponents(userNameInput);
+                    modal.addComponents(firstActionRow);
+
+                    // Show the modal to the user
+                    await i.showModal(modal);
+                }
+            });
         }
     },
 };
