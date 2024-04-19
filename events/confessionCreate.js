@@ -58,7 +58,7 @@ module.exports = {
 
             if (targetChannel) {
                 // Send the confession as a message to the target channel
-                message = await targetChannel.send({ embeds: [confessionEmbed], components: [row] });
+                await targetChannel.send({ embeds: [confessionEmbed], components: [row] });
                 await interaction.reply({ content: 'Your confession was received and posted!', ephemeral: true });
             } else {
                 await interaction.reply({ content: 'There was an error processing your confession.', ephemeral: true });
@@ -68,7 +68,6 @@ module.exports = {
             const collector = interaction.channel.createMessageComponentCollector({ filter });
 
             collector.on('collect', async i => {
-                console.log(i.message.id)
                 if (i.isButton() && i.customId === interaction.id) {
                     const modal = new ModalBuilder()
                         .setCustomId('guessModal')

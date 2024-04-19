@@ -65,7 +65,6 @@ module.exports = {
                 // Record this user's guess
                 userSet.add(userId);
             } catch (error) {
-                console.error('Error:', error);
                 await interaction.editReply({ content: 'Failed to process your guess. Please try again.' });
             }
         }
