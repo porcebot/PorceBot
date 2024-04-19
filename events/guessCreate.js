@@ -41,6 +41,8 @@ module.exports = {
                 }
                 await interaction.deferReply({ ephemeral: true });
 
+
+                const displayName = memberMatch.displayName;
                 const messageId = interaction.message.id;
                 const originalMessage = await interaction.channel.messages.fetch(messageId);
 
@@ -48,10 +50,10 @@ module.exports = {
                 const existingFooter = originalMessage.embeds[0].footer ? originalMessage.embeds[0].footer.text : '';
                 const guessMap = parseFooter(existingFooter);
                 // Update the guess count for the new input
-                if (guessMap[userInput]) {
-                    guessMap[userInput]++;
+                if (guessMap[displayName]) {
+                    guessMap[displayName]++;
                 } else {
-                    guessMap[userInput] = 1;
+                    guessMap[displayName] = 1;
                 }
 
                 // Sort guesses by count and format for the footer
