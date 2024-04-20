@@ -78,7 +78,7 @@ module.exports = {
         });
 
         const filter = i => i.customId === 'confessionSelect';
-        const collector = interaction.channel.createMessageComponentCollector({ filter });
+        const collector = interaction.channel.createMessageComponentCollector({ filter, time: 60000 });
 
         collector.on('collect', async i => {
             if (i.customId === 'confessionSelect') {
@@ -93,35 +93,34 @@ module.exports = {
                 // Check if this user has already guessed
                 if (userSet.has(selectedUser.id)) {
                     await interaction.editReply({ content: 'You have already made a guess for this confession!', components: [], ephemeral: true });
-                    return; // Prevent further processing
-                }
+                } else {
+                    try {
+                        const originalMessage = await interaction.channel.messages.fetch(messageId);
 
-                try {
-                    const originalMessage = await interaction.channel.messages.fetch(messageId);
+                        // Retrieve the existing footer, if it exists
+                        const existingFooter = originalMessage.embeds[0].footer ? originalMessage.embeds[0].footer.text : '';
+                        const guessMap = parseFooter(existingFooter);
+                        // Update the guess count for the new input
+                        if (guessMap[displayName]) {
+                            guessMap[displayName]++;
+                        } else {
+                            guessMap[displayName] = 1;
+                        }
 
-                    // Retrieve the existing footer, if it exists
-                    const existingFooter = originalMessage.embeds[0].footer ? originalMessage.embeds[0].footer.text : '';
-                    const guessMap = parseFooter(existingFooter);
-                    // Update the guess count for the new input
-                    if (guessMap[displayName]) {
-                        guessMap[displayName]++;
-                    } else {
-                        guessMap[displayName] = 1;
+                        // Sort guesses by count and format for the footer
+                        const sortedFooterText = formatGuesses(guessMap);
+
+                        const newEmbed = EmbedBuilder.from(originalMessage.embeds[0])
+                            .setFooter({ text: sortedFooterText, iconURL: 'https://i.imgur.com/U636KHq.png' });
+
+                        await originalMessage.edit({ embeds: [newEmbed] });
+                        await interaction.editReply({ content: 'Your guess has been recorded!', components: [], ephemeral: true });
+                        // Record this user's guess
+                        userSet.add(selectedUser.id);
+                    } catch (error) {
+                        console.log(error)
+                        await interaction.editReply({ content: 'Failed to process your guess. Please try again.', components: [], ephemeral: true });
                     }
-
-                    // Sort guesses by count and format for the footer
-                    const sortedFooterText = formatGuesses(guessMap);
-
-                    const newEmbed = EmbedBuilder.from(originalMessage.embeds[0])
-                        .setFooter({ text: sortedFooterText, iconURL: 'https://i.imgur.com/U636KHq.png' });
-
-                    await originalMessage.edit({ embeds: [newEmbed] });
-                    await interaction.editReply({ content: 'Your guess has been recorded!', components: [], ephemeral: true });
-                    // Record this user's guess
-                    userSet.add(selectedUser.id);
-                } catch (error) {
-                    console.log(error)
-                    await interaction.editReply({ content: 'Failed to process your guess. Please try again.', components: [], ephemeral: true });
                 }
             }
         });
