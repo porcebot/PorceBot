@@ -44,21 +44,13 @@ module.exports = {
                 .setTimestamp()
                 .setThumbnail('https://i.imgur.com/ZIAcuzg.gif');
 
-            const actionButton = new ButtonBuilder()
-                .setCustomId(interaction.id)
-                .setLabel('Guess Who?')
-                .setStyle(ButtonStyle.Secondary);
-
-            const row = new ActionRowBuilder()
-                .addComponents(actionButton);
-
             if (imageField) {
                 confessionEmbed.setImage(imageField)
             }
 
             if (targetChannel) {
                 // Send the confession as a message to the target channel
-                await targetChannel.send({ embeds: [confessionEmbed], components: [row] });
+                await targetChannel.send({ embeds: [confessionEmbed] });
                 await interaction.reply({ content: 'Your confession was received and posted!', ephemeral: true });
             } else {
                 await interaction.reply({ content: 'There was an error processing your confession.', ephemeral: true });

@@ -9,7 +9,7 @@ module.exports = {
             option.setName('amount')
                 .setRequired(true)
                 .setDescription('Set the amount of messages to be deleted')
-                .setMinValue(1)
+                .setMinValue(2)
                 .setMaxValue(100)),
 
     async execute(interaction) {
