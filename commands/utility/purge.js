@@ -24,8 +24,8 @@ module.exports = {
             return; // Exit the command execution if none of the roles are found
         }
 
-        const membersWithoutRole = [];
-        const membersWithoutRoleId = [];
+        let membersWithoutRole = [];
+        let membersWithoutRoleId = [];
 
         try {
             // Fetch all members of the guild
@@ -98,11 +98,19 @@ module.exports = {
             const filter = i => (i.customId === 'cancel' || i.customId === 'confirm') && i.user.id === interaction.user.id;
 
             // Create a collector on the interaction channel to listen for buton presses
-            const collector = interaction.channel.createMessageComponentCollector({ filter }); // 15-second time limit for demo
+            const collector = interaction.channel.createMessageComponentCollector({ filter, time: 20000 }); // 20-second time limit
+
+            collector.on('end', async (collected, reason) => {
+                if (reason === 'time') { // Check if the reason is 'time'
+                    await interaction.editReply({ content: 'Command time ran out.', components: [], embeds: [], ephemeral: true });
+                }
+                membersWithoutRole = [];
+                membersWithoutRoleId = [];
+            });
 
             collector.on('collect', async i => {
                 if (i.customId === 'cancel') {
-                    await i.update({ content: 'The command has been cancelled.', components: [], embeds: [], ephemeral: true }); // Update the message to show cancellation and remove buttons
+                    await interaction.editReply({ content: 'The command has been cancelled.', components: [], embeds: [], ephemeral: true }); // Update the message to show cancellation and remove buttons
                     collector.stop('cancelled'); // Stop the collector
                 }
                 // Check if this is the confirm button
