@@ -35,6 +35,18 @@ function formatGuesses(guessMap) {
     return sortedGuesses.map(([name, count]) => `${count}x ${name}`).join(', ');
 }
 
+// Define an async function to use await
+async function getNickname(guild, userId) {
+    const member = await guild.members.fetch(userId);
+    if (member.nickname) {
+        return member.nickname;
+    }
+    if (member.user.globalName) {
+        return member.user.globalName;
+    }
+    return member.user.username;
+}
+
 const guessesPerMessage = new Map();
 
 module.exports = {
@@ -47,7 +59,17 @@ module.exports = {
                 .setDescription('Pick a user')),
 
     async execute(interaction) {
-        const selectedUser = interaction.options.getUser('user');
+        const globalName = interaction.options.getUser('user');
+
+        if (globalName.bot) {
+            await interaction.reply({ content: 'You cannot make guesses on bots!', components: [], ephemeral: true });
+            return;
+        }
+
+        const guild = interaction.guild;
+        const userId = globalName.id;
+        const selectedUser = await getNickname(guild, userId);
+
         let fetched = await interaction.channel.messages.fetch({ limit: 25 });
         let botMessages = fetched.filter(m => m.author.bot);
         let confessionMessages = botMessages.filter(m =>
@@ -83,7 +105,6 @@ module.exports = {
         collector.on('collect', async i => {
             if (i.customId === 'confessionSelect') {
                 const messageId = i.values[0];
-                const displayName = selectedUser.globalName;
 
                 if (!guessesPerMessage.has(messageId)) {
                     guessesPerMessage.set(messageId, new Set());
@@ -101,10 +122,10 @@ module.exports = {
                         const existingFooter = originalMessage.embeds[0].footer ? originalMessage.embeds[0].footer.text : '';
                         const guessMap = parseFooter(existingFooter);
                         // Update the guess count for the new input
-                        if (guessMap[displayName]) {
-                            guessMap[displayName]++;
+                        if (guessMap[selectedUser]) {
+                            guessMap[selectedUser]++;
                         } else {
-                            guessMap[displayName] = 1;
+                            guessMap[selectedUser] = 1;
                         }
 
                         // Sort guesses by count and format for the footer
