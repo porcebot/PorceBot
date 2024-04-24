@@ -36,8 +36,8 @@ function formatGuesses(guessMap) {
 }
 
 // Define an async function to use await
-async function getNickname(guild, userId) {
-    const member = await guild.members.fetch(userId);
+async function getNickname(guild, targetUserId) {
+    const member = await guild.members.fetch(targetUserId);
     if (member.nickname) {
         return member.nickname;
     }
@@ -65,10 +65,10 @@ module.exports = {
             await interaction.reply({ content: 'You cannot make guesses on bots!', components: [], ephemeral: true });
             return;
         }
-
+        const userId = interaction.user.id;
         const guild = interaction.guild;
-        const userId = globalName.id;
-        const selectedUser = await getNickname(guild, userId);
+        const targetUserId = globalName.id;
+        const selectedUser = await getNickname(guild, targetUserId);
 
         let fetched = await interaction.channel.messages.fetch({ limit: 25 });
         let botMessages = fetched.filter(m => m.author.bot);
@@ -112,7 +112,7 @@ module.exports = {
                 const userSet = guessesPerMessage.get(messageId);
 
                 // Check if this user has already guessed
-                if (userSet.has(selectedUser.id)) {
+                if (userSet.has(userId)) {
                     await interaction.editReply({ content: 'You have already made a guess for this confession!', components: [], ephemeral: true });
                 } else {
                     try {
@@ -137,7 +137,7 @@ module.exports = {
                         await originalMessage.edit({ embeds: [newEmbed] });
                         await interaction.editReply({ content: 'Your guess has been recorded!', components: [], ephemeral: true });
                         // Record this user's guess
-                        userSet.add(selectedUser.id);
+                        userSet.add(userId);
                     } catch (error) {
                         console.log(error)
                         await interaction.editReply({ content: 'Failed to process your guess. Please try again.', components: [], ephemeral: true });
