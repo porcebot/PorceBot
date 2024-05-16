@@ -96,7 +96,11 @@ module.exports = {
                     batchCount++;
                     await i.editReply({ content: `Batch ${batchCount} complete. Latest msg id: ${lastMessageId}. Index messages amount: ${indexedMessages}. Please wait...`, embeds: [], components: [], ephemeral: false });
                 } while (batchCount < 100);
-                await i.editReply({ content: `Cleared ${deletedMessages} bad words! Latest msg id: ${lastMessageId} Bad Boycord! >:(`, embeds: [], components: [], ephemeral: false });
+                if (batchCount === 0) {
+                    await i.editReply({ content: `No bad words found! Good Boycord! :)`, embeds: [], components: [], ephemeral: false });
+                } else {
+                    await i.editReply({ content: `Cleared ${deletedMessages} bad words! Latest msg id: ${lastMessageId} Bad Boycord! >:(`, embeds: [], components: [], ephemeral: false });
+                }
                 const modBotChannel = interaction.guild.channels.cache.find(channel => channel.name === 'mod-bot' && channel.type === ChannelType.GuildText);
                 if (modBotChannel) {
                     // Compose a message about the interaction
