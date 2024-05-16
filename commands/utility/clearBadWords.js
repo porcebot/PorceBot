@@ -54,6 +54,7 @@ module.exports = {
                 let retryAfter = 0;
                 let batchCount = 0;
                 let lastMessageId;
+                let indexedMessages = 0;
                 do {
                     if (retryAfter > 0) {
                         await new Promise(resolve => setTimeout(resolve, retryAfter));
@@ -66,6 +67,7 @@ module.exports = {
                         }
                         fetched = await interaction.channel.messages.fetch(options);
                         if (fetched.size === 0) break;
+                        indexedMessages += fetched.size
                         const badMessages = fetched.filter(msg =>
                             badWordsMapped.some(word => msg.content.toLowerCase().includes(word.toLowerCase()))
                         );
@@ -84,8 +86,8 @@ module.exports = {
                         }
                     }
                     batchCount++;
-                    await i.editReply({ content: `Batch ${batchCount} complete. Latest msg id: ${lastMessageId} Please wait...`, embeds: [], components: [], ephemeral: false });
-                } while (batchCount < 10);
+                    await i.editReply({ content: `Batch ${batchCount} complete. Latest msg id: ${lastMessageId}. Index messages amount: ${indexedMessages}. Please wait...`, embeds: [], components: [], ephemeral: false });
+                } while (batchCount < 20);
                 await i.editReply({ content: `Cleared ${deletedMessages} bad words! Bad Boycord! >:(`, embeds: [], components: [], ephemeral: false });
                 const modBotChannel = interaction.guild.channels.cache.find(channel => channel.name === 'mod-bot' && channel.type === ChannelType.GuildText);
                 if (modBotChannel) {
