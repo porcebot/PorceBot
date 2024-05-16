@@ -65,6 +65,7 @@ module.exports = {
                 }
                 do {
                     if (retryAfter > 0) {
+                        await i.editReply({ content: `Discord API rate limit reached, hold on for ${retryAfter} seconds...`, embeds: [], components: [], ephemeral: false });
                         await new Promise(resolve => setTimeout(resolve, retryAfter));
                         retryAfter = 0; // Reset the retryAfter delay
                     }
@@ -87,14 +88,13 @@ module.exports = {
                     } catch (error) {
                         if (error.code === 50013) { // Check if the error is due to rate limits
                             retryAfter = error.retry_after * 1000; // Convert seconds to milliseconds
-                            await i.editReply({ content: `Discord API rate limit reached, hold on for ${retryAfter} seconds...`, embeds: [], components: [], ephemeral: false });
                         } else {
                             await i.editReply({ content: `An error has occurred. Please try again later.`, embeds: [], components: [], ephemeral: false });
                             break;
                         }
                     }
                     batchCount++;
-                    await i.editReply({ content: `Batch ${batchCount} complete. Latest msg id: ${lastMessageId}. Index messages amount: ${indexedMessages}. Please wait...`, embeds: [], components: [], ephemeral: false });
+                    await i.editReply({ content: `Batch ${batchCount} complete. Latest msg id: ${lastMessageId}. Indexed messages: ${indexedMessages}. Please wait...`, embeds: [], components: [], ephemeral: false });
                 } while (batchCount < 100);
                 if (batchCount === 0) {
                     await i.editReply({ content: `No bad words found! Good Boycord! :)`, embeds: [], components: [], ephemeral: false });
