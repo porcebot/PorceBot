@@ -7,11 +7,9 @@ module.exports = {
         .setDescription('Clear bad words in this channel. Iterates up to 10K msgs at a time.')
         .setDefaultMemberPermissions(PermissionFlagsBits.KickMembers)
         .addStringOption(option =>
-            option.setName('Id')
-                .setRequired(false)
+            option.setName('id')
                 .setDescription('Set a message ID to start iterating from')
-                .setMinValue(1)
-                .setMaxValue(100)),
+                .setRequired(false)),
 
     async execute(interaction) {
         await interaction.deferReply({ ephemeral: true }).catch(console.error);
