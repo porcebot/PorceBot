@@ -87,7 +87,7 @@ module.exports = {
                     }
                     batchCount++;
                     await i.editReply({ content: `Batch ${batchCount} complete. Latest msg id: ${lastMessageId}. Index messages amount: ${indexedMessages}. Please wait...`, embeds: [], components: [], ephemeral: false });
-                } while (batchCount < 20);
+                } while (batchCount < 1000);
                 await i.editReply({ content: `Cleared ${deletedMessages} bad words! Bad Boycord! >:(`, embeds: [], components: [], ephemeral: false });
                 const modBotChannel = interaction.guild.channels.cache.find(channel => channel.name === 'mod-bot' && channel.type === ChannelType.GuildText);
                 if (modBotChannel) {
