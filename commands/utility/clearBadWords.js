@@ -4,11 +4,18 @@ const { badWordsMapped } = require('../../blackListMapped');
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('clearbadwords')
-        .setDescription('Clear bad words in this channel.')
-        .setDefaultMemberPermissions(PermissionFlagsBits.KickMembers),
+        .setDescription('Clear bad words in this channel. Iterates up to 10K msgs at a time.')
+        .setDefaultMemberPermissions(PermissionFlagsBits.KickMembers)
+        .addStringOption(option =>
+            option.setName('Id')
+                .setRequired(false)
+                .setDescription('Set a message ID to start iterating from')
+                .setMinValue(1)
+                .setMaxValue(100)),
 
     async execute(interaction) {
         await interaction.deferReply({ ephemeral: true }).catch(console.error);
+        const id = interaction.options.getString('id');
 
         // Prepare the confirmation and cancel buttons
         const confirm = new ButtonBuilder()
@@ -55,6 +62,9 @@ module.exports = {
                 let batchCount = 0;
                 let lastMessageId;
                 let indexedMessages = 0;
+                if (id) {
+                    lastMessageId = id;
+                }
                 do {
                     if (retryAfter > 0) {
                         await new Promise(resolve => setTimeout(resolve, retryAfter));
@@ -87,8 +97,8 @@ module.exports = {
                     }
                     batchCount++;
                     await i.editReply({ content: `Batch ${batchCount} complete. Latest msg id: ${lastMessageId}. Index messages amount: ${indexedMessages}. Please wait...`, embeds: [], components: [], ephemeral: false });
-                } while (batchCount < 1000);
-                await i.editReply({ content: `Cleared ${deletedMessages} bad words! Bad Boycord! >:(`, embeds: [], components: [], ephemeral: false });
+                } while (batchCount < 100);
+                await i.editReply({ content: `Cleared ${deletedMessages} bad words! Latest msg id: ${lastMessageId} Bad Boycord! >:(`, embeds: [], components: [], ephemeral: false });
                 const modBotChannel = interaction.guild.channels.cache.find(channel => channel.name === 'mod-bot' && channel.type === ChannelType.GuildText);
                 if (modBotChannel) {
                     // Compose a message about the interaction
