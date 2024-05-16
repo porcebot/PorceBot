@@ -53,12 +53,20 @@ module.exports = {
                 let fetched;
                 let retryAfter = 0;
                 let batchCount = 0;
+                let lastMessageId;
                 do {
                     if (retryAfter > 0) {
                         await new Promise(resolve => setTimeout(resolve, retryAfter));
                         retryAfter = 0; // Reset the retryAfter delay
                     }
                     try {
+                        const options = { limit: 100 };
+                        if (lastMessageId) {
+                            options.before = lastMessageId;
+                        }
+                        fetched = await interaction.channel.messages.fetch(options);
+                        if (fetched.size === 0) break;
+
                         fetched = await interaction.channel.messages.fetch({ limit: 100 });
                         const badMessages = fetched.filter(msg =>
                             badWordsMapped.some(word => msg.content.toLowerCase().includes(word.toLowerCase()))
@@ -67,7 +75,7 @@ module.exports = {
                         for (const msg of badMessages.values()) {
                             await msg.delete();
                         }
-                        console.log(fetched.last().id)
+                        lastMessageId = fetched.last().id;
                     } catch (error) {
                         if (error.code === 50013) { // Check if the error is due to rate limits
                             retryAfter = error.retry_after * 1000; // Convert seconds to milliseconds
