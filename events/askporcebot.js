@@ -1,7 +1,5 @@
-const { SlashCommandBuilder } = require('discord.js');
-require('dotenv').config();
+const { Events } = require('discord.js');
 const { OpenAI } = require('openai');
-const { replaceBlacklistedWords } = require('../../utils/blacklist');
 
 let lastCommandTime = 0;
 const cooldownDuration = 10000;
@@ -34,18 +32,35 @@ function addMessage(role, content) {
     conversationArray.push({ role: role, content: content });
 }
 
-module.exports = {
-    data: new SlashCommandBuilder()
-        .setName('askmrporcebot')
-        .setDescription('Ask Mr. PorceBot a question.')
-        .addStringOption(option =>
-            option.setName('question')
-                .setRequired(true)
-                .setDescription('State your question.')),
+function splitMessage(text, maxLength = 2000) {
+    const lines = text.split('\n');
+    const chunks = [];
+    let chunk = '';
 
+    for (const line of lines) {
+        if (chunk.length + line.length + 1 > maxLength) {
+            chunks.push(chunk);
+            chunk = '';
+        }
+        chunk += line + '\n';
+    }
+
+    chunks.push(chunk);
+    return chunks;
+}
+
+module.exports = {
+    name: Events.MessageCreate,
     async execute(interaction) {
-        await interaction.deferReply();
+        if (interaction.author.bot) return;
+        const botMentioned = interaction.mentions.has(interaction.client.user);
+        const repliedToBot = interaction.reference && (await interaction.channel.messages.fetch(interaction.reference.messageId)).author.id === interaction.client.user.id;
+        if (!botMentioned && !repliedToBot) return;
+        const prompt = botMentioned ? interaction.content.replace(`<@${interaction.client.user.id}>`, '').trim() : interaction.content;
+        if (!prompt) return;
+
         try {
+            await interaction.channel.sendTyping();
             const currentTime = Date.now();
             if (currentTime - lastCommandTime < cooldownDuration) {
                 const timeLeft = Math.ceil((cooldownDuration - (currentTime - lastCommandTime)) / 1000); // Time remaining in seconds
@@ -53,9 +68,6 @@ module.exports = {
                 return;
             }
             lastCommandTime = currentTime;
-            const user = interaction.user;
-            const userQuestion = interaction.options.getString('question'); // User question
-            const prompt = replaceBlacklistedWords(userQuestion); // Make the question prompt friendly
 
             includeSystemMessage() // ensure system message is included in prompt
             addMessage('user', prompt); // add user message to prompt
@@ -71,12 +83,15 @@ module.exports = {
             });
 
             if (!response || !response.choices[0]) {
-                await interaction.editReply(`Erm... I can't answer right now, please try again later!<3`).catch(console.error);
+                await interaction.reply(`Erm... I can't answer right now, please try again later!<3`).catch(console.error);
             }
             const botMessage = response.choices[0].message.content;
             addMessage('assistant', botMessage); // add bot message for future prompts
-            await interaction.editReply(`${user}: *"${userQuestion}"*\n\n${botMessage}`).catch(console.error); // Finally, send message on Discord
-            console.log(response)
+            const chunks = splitMessage(botMessage);
+
+            for (const chunk of chunks) {
+                await interaction.reply(chunk).catch(console.error); // Finally, send message on Discord
+            }
         } catch (error) {
             console.error('Error occurred:', error);
         }

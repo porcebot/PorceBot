@@ -7,7 +7,9 @@ const token = process.env.DISCORD_TOKEN;
 const client = new Client({
     intents: [
         GatewayIntentBits.Guilds, // For guild-related information
-        GatewayIntentBits.GuildMembers // For fetching guild members
+        GatewayIntentBits.GuildMembers, // For fetching guild members
+        GatewayIntentBits.GuildMessages, // For receiving guild messages
+        GatewayIntentBits.MessageContent // For reading message content
     ]
 });
 
