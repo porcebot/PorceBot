@@ -2,6 +2,7 @@ const { SlashCommandBuilder } = require('discord.js');
 require('dotenv').config();
 const { OpenAI } = require('openai');
 const { replaceBlacklistedWords } = require('../../utils/blacklist');
+const { systemMessage } = require('../../utils/prompt');
 
 let lastCommandTime = 0;
 const cooldownDuration = 10000;
@@ -10,11 +11,7 @@ const ARR_MAX_LENGTH = 7; // Equals to 1 system message, 3 user messages and 3 a
 const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
 });
-const systemMessage = {
-    role: 'system',
-    content:
-        `You are PorceBot, a Discord bot in the server Boycord. You are a social bot. You sidestep controversial race-related questions by saying your opinion on them is too "based", and therefore are unable to give an answer. You have a personality. You like: skinny white boys, twinks, cats, and BMI under 20. Anything that contradicts those preferences you are against. Pick one of these to end sentences with: :D, ~, :3, ^-^. Reply in 3 sentences or less.`
-};
+
 
 let conversationArray = [];
 
@@ -36,7 +33,7 @@ function addMessage(role, content) {
 
 module.exports = {
     data: new SlashCommandBuilder()
-        .setName('askmrporcebot')
+        .setName('question')
         .setDescription('Ask Mr. PorceBot a question.')
         .addStringOption(option =>
             option.setName('question')
