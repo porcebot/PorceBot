@@ -3,7 +3,7 @@ const { OpenAI } = require('openai');
 const { systemMessage } = require('../utils/prompt');
 
 let lastCommandTime = 0;
-const cooldownDuration = 10000;
+const cooldownDuration = 3000;
 const ARR_MAX_LENGTH = 7; // Equals to 1 system message, 3 user messages and 3 assistant messages
 
 const openai = new OpenAI({
