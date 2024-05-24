@@ -76,7 +76,7 @@ module.exports = {
             if (userTraits) {
                 personalizedQuestion = `${userTraits.name} (${userTraits.traits}): ${userQuestion}`;
             } else {
-                const userName = interaction.user.globalName ?? '';
+                const userName = interaction.author.globalName ?? '';
                 personalizedQuestion = `${userName}: ${userQuestion}`;
             }
 
