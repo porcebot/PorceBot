@@ -2,7 +2,7 @@ const { SlashCommandBuilder } = require('discord.js');
 require('dotenv').config();
 const { OpenAI } = require('openai');
 const { replaceBlacklistedWords } = require('../../utils/blacklist');
-const { systemMessage } = require('../../utils/prompt');
+const { systemMessage, personalityTraitsObject } = require('../../utils/prompt');
 
 let lastCommandTime = 0;
 const cooldownDuration = 3000;
@@ -50,10 +50,18 @@ module.exports = {
                 return;
             }
             lastCommandTime = currentTime;
-            const user = interaction.user;
-            const userQuestion = interaction.options.getString('question'); // User question
-            const prompt = replaceBlacklistedWords(userQuestion); // Make the question prompt friendly
 
+            const userQuestion = interaction.options.getString('question'); // User question
+            const userId = interaction.user.id;
+            const user = interaction.user;
+            const userTraits = personalityTraitsObject[userId];
+            let personalizedQuestion = userQuestion;
+
+            if (userTraits) {
+                personalizedQuestion = `${userTraits.name} (${userTraits.traits}): ${userQuestion}`;
+            }
+
+            const prompt = replaceBlacklistedWords(personalizedQuestion); // Make the question prompt friendly
             includeSystemMessage() // ensure system message is included in prompt
             addMessage('user', prompt); // add user message to prompt
 
@@ -73,7 +81,6 @@ module.exports = {
             const botMessage = response.choices[0].message.content;
             addMessage('assistant', botMessage); // add bot message for future prompts
             await interaction.editReply(`${user}: *"${userQuestion}"*\n\n${botMessage}`).catch(console.error); // Finally, send message on Discord
-            console.log(response)
         } catch (error) {
             console.error('Error occurred:', error);
         }

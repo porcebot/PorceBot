@@ -1,6 +1,7 @@
 const { Events } = require('discord.js');
 const { OpenAI } = require('openai');
-const { systemMessage } = require('../utils/prompt');
+const { systemMessage, personalityTraitsObject } = require('../utils/prompt');
+const { replaceBlacklistedWords } = require('../utils/blacklist');
 
 let lastCommandTime = 0;
 const cooldownDuration = 3000;
@@ -54,8 +55,8 @@ module.exports = {
         if (!interaction.reference && !botMentioned) return; // Escape early to avoid fetching channel messages
         const repliedToBot = interaction.reference && (await interaction.channel.messages.fetch(interaction.reference.messageId)).author.id === interaction.client.user.id;
         if (!botMentioned && !repliedToBot) return;
-        const prompt = botMentioned ? interaction.content.replace(`<@${interaction.client.user.id}>`, '').trim() : interaction.content;
-        if (!prompt) return;
+        const userQuestion = botMentioned ? interaction.content.replace(`<@${interaction.client.user.id}>`, '').trim() : interaction.content;
+        if (!userQuestion) return;
 
 
         try {
@@ -68,7 +69,16 @@ module.exports = {
             }
             lastCommandTime = currentTime;
 
+            const userId = interaction.author.id;
+            const userTraits = personalityTraitsObject[userId];
+            let personalizedQuestion = userQuestion;
+
+            if (userTraits) {
+                personalizedQuestion = `${userTraits.name} (${userTraits.traits}): ${userQuestion}`;
+            }
+
             includeSystemMessage() // ensure system message is included in prompt
+            const prompt = replaceBlacklistedWords(personalizedQuestion); // Make the question prompt friendly
             addMessage('user', prompt); // add user message to prompt
 
             const response = await openai.chat.completions.create({

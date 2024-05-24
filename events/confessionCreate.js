@@ -1,4 +1,4 @@
-const { Events, ButtonStyle, ButtonBuilder, ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle } = require('discord.js');
+const { Events, ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle } = require('discord.js');
 const { replaceTextWithEmojis } = require('../utils/parseEmoji');
 
 module.exports = {
