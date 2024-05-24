@@ -59,6 +59,9 @@ module.exports = {
 
             if (userTraits) {
                 personalizedQuestion = `${userTraits.name} (${userTraits.traits}): ${userQuestion}`;
+            } else {
+                const userName = interaction.user.globalName ?? '';
+                personalizedQuestion = `${userName}: ${userQuestion}`;
             }
 
             const prompt = replaceBlacklistedWords(personalizedQuestion); // Make the question prompt friendly

@@ -5,7 +5,7 @@ const { replaceBlacklistedWords } = require('../utils/blacklist');
 
 let lastCommandTime = 0;
 const cooldownDuration = 3000;
-const ARR_MAX_LENGTH = 7; // Equals to 1 system message, 3 user messages and 3 assistant messages
+const ARR_MAX_LENGTH = 11; // Equals to 1 system message, 5 user messages and 5 assistant messages
 
 const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
@@ -75,6 +75,9 @@ module.exports = {
 
             if (userTraits) {
                 personalizedQuestion = `${userTraits.name} (${userTraits.traits}): ${userQuestion}`;
+            } else {
+                const userName = interaction.user.globalName ?? '';
+                personalizedQuestion = `${userName}: ${userQuestion}`;
             }
 
             includeSystemMessage() // ensure system message is included in prompt
