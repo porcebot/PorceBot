@@ -2,6 +2,9 @@ const { Events } = require('discord.js');
 const { OpenAI } = require('openai');
 const { systemMessage, personalityTraitsObject, tools } = require('../utils/prompt');
 const { replaceBlacklistedWords } = require('../utils/blacklist');
+const fs = require('fs');
+const path = require('path');
+const filePath = path.join(__dirname, 'personalityTraits.json');
 
 let lastCommandTime = 0;
 const cooldownDuration = 3000;
@@ -46,6 +49,40 @@ function splitMessage(text, maxLength = 2000) {
     return chunks;
 }
 
+function readPersonalityTraits() {
+    if (fs.existsSync(filePath)) {
+        const data = fs.readFileSync(filePath, 'utf-8');
+        return JSON.parse(data);
+    }
+    return {};
+}
+
+function getUserTraits(userId) {
+    const personalityTraits = readPersonalityTraits();
+    return personalityTraits[userId] || null;
+}
+
+function writePersonalityTraits(data) {
+    fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf-8');
+}
+
+function setPersonality(user_id, userName, personality_trait, response_text) {
+    const personalityTraits = readPersonalityTraits();
+
+    if (personalityTraits[user_id]) {
+        personalityTraits[user_id].name = userName;
+        personalityTraits[user_id].traits = personality_trait;
+    } else {
+        // Add new user
+        personalityTraits[user_id] = {
+            name: userName,
+            traits: personality_trait
+        };
+    }
+    writePersonalityTraits(personalityTraits);
+    return response_text;
+}
+
 module.exports = {
     name: Events.MessageCreate,
     async execute(interaction) {
@@ -58,7 +95,6 @@ module.exports = {
         const userQuestion = botMentioned ? interaction.content.replace(`<@${interaction.client.user.id}>`, '').trim() : interaction.content;
         if (!userQuestion) return;
 
-
         try {
             await interaction.channel.sendTyping();
             const currentTime = Date.now();
@@ -70,13 +106,15 @@ module.exports = {
             lastCommandTime = currentTime;
 
             const userId = interaction.author.id;
-            const userTraits = personalityTraitsObject[userId];
+            const userTraits = getUserTraits(userId);
             let personalizedQuestion = userQuestion;
+            let userName;
 
             if (userTraits) {
+                userName = userTraits.name;
                 personalizedQuestion = `${userTraits.name} (${userId}) (${userTraits.traits}): ${userQuestion}`;
             } else {
-                const userName = interaction.author.globalName ?? '';
+                userName = interaction.author.globalName ?? '';
                 personalizedQuestion = `${userName} (${userId}): ${userQuestion}`;
             }
 
@@ -92,17 +130,21 @@ module.exports = {
                 top_p: 1,
                 frequency_penalty: 0,
                 presence_penalty: 0,
+                tools: tools,
+                tool_choice: 'auto'
             });
 
             if (!response || !response.choices[0]) {
                 await interaction.reply(`Erm... I can't answer right now, please try again later!<3`).catch(console.error);
             }
             const replyContent = response.choices[0].message.content;
-            const botMessage = replyContent ? replyContent : `Sure, I'll write that down!`;
+            let botMessage = replyContent ? replyContent : `Sure, I'll write that down!`;
             const functionParams = response.choices?.[0]?.message?.tool_calls?.[0]?.function ?? undefined;
-            console.log(response.choices[0].message)
+            if (functionParams) {
+                const { user_id, personality_trait, response_text } = JSON.parse(functionParams.arguments)
+                botMessage = setPersonality(user_id, userName, personality_trait, response_text);
+            }
 
-            console.log(functionParams)
             addMessage('assistant', botMessage); // add bot message for future prompts
             const chunks = splitMessage(botMessage);
 
