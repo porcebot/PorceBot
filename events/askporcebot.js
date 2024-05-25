@@ -92,8 +92,6 @@ module.exports = {
                 top_p: 1,
                 frequency_penalty: 0,
                 presence_penalty: 0,
-                tools: tools,
-                tool_choice: 'auto'
             });
 
             if (!response || !response.choices[0]) {
