@@ -1,6 +1,6 @@
 const { Events } = require('discord.js');
 const { OpenAI } = require('openai');
-const { systemMessage, personalityTraitsObject } = require('../utils/prompt');
+const { systemMessage, personalityTraitsObject, tools } = require('../utils/prompt');
 const { replaceBlacklistedWords } = require('../utils/blacklist');
 
 let lastCommandTime = 0;
@@ -74,10 +74,10 @@ module.exports = {
             let personalizedQuestion = userQuestion;
 
             if (userTraits) {
-                personalizedQuestion = `${userTraits.name} (${userTraits.traits}): ${userQuestion}`;
+                personalizedQuestion = `${userTraits.name} (${userId}) (${userTraits.traits}): ${userQuestion}`;
             } else {
                 const userName = interaction.author.globalName ?? '';
-                personalizedQuestion = `${userName}: ${userQuestion}`;
+                personalizedQuestion = `${userName} (${userId}): ${userQuestion}`;
             }
 
             includeSystemMessage() // ensure system message is included in prompt
@@ -92,12 +92,19 @@ module.exports = {
                 top_p: 1,
                 frequency_penalty: 0,
                 presence_penalty: 0,
+                tools: tools,
+                tool_choice: 'auto'
             });
 
             if (!response || !response.choices[0]) {
                 await interaction.reply(`Erm... I can't answer right now, please try again later!<3`).catch(console.error);
             }
-            const botMessage = response.choices[0].message.content;
+            const replyContent = response.choices[0].message.content;
+            const botMessage = replyContent ? replyContent : `Sure, I'll write that down!`;
+            const functionParams = response.choices?.[0]?.message?.tool_calls?.[0]?.function ?? undefined;
+            console.log(response.choices[0].message)
+
+            console.log(functionParams)
             addMessage('assistant', botMessage); // add bot message for future prompts
             const chunks = splitMessage(botMessage);
 
