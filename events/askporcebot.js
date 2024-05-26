@@ -7,7 +7,7 @@ const path = require('path');
 const filePath = path.join(__dirname, 'personalityTraits.json');
 
 let lastCommandTime = 0;
-const cooldownDuration = 3000;
+const cooldownDuration = 4000;
 const ARR_MAX_LENGTH = 11; // Equals to 1 system message, 5 user messages and 5 assistant messages
 
 const openai = new OpenAI({
