@@ -121,6 +121,7 @@ module.exports = {
             includeSystemMessage() // ensure system message is included in prompt
             const prompt = replaceBlacklistedWords(personalizedQuestion); // Make the question prompt friendly
             addMessage('user', prompt); // add user message to prompt
+            console.log(conversationArray)
 
             const response = await openai.chat.completions.create({
                 model: "gpt-4o",
@@ -138,18 +139,23 @@ module.exports = {
                 await interaction.reply(`Erm... I can't answer right now, please try again later!<3`).catch(console.error);
             }
             const replyContent = response.choices[0].message.content;
-            let botMessage = replyContent ? replyContent : `Sure, I'll write that down!`;
+            const botMessage = replyContent ? replyContent : `Sure, I'll write that down!`;
             const functionParams = response.choices?.[0]?.message?.tool_calls?.[0]?.function ?? undefined;
+
             if (functionParams) {
                 const { user_id, personality_trait, response_text } = JSON.parse(functionParams.arguments)
-                botMessage = setPersonality(user_id, userName, personality_trait, response_text);
-            }
-
-            addMessage('assistant', botMessage); // add bot message for future prompts
-            const chunks = splitMessage(botMessage);
-
-            for (const chunk of chunks) {
-                await interaction.reply(chunk).catch(console.error); // Finally, send message on Discord
+                const botMessagePersonality = setPersonality(user_id, userName, personality_trait, response_text);
+                addMessage('assistant', botMessagePersonality); // add bot message for future prompts
+                const chunks = splitMessage(botMessagePersonality);
+                for (const chunk of chunks) {
+                    await interaction.reply(chunk).catch(console.error); // Finally, send message on Discord
+                }
+            } else {
+                addMessage('assistant', botMessage); // add bot message for future prompts
+                const chunks = splitMessage(botMessage);
+                for (const chunk of chunks) {
+                    await interaction.reply(chunk).catch(console.error); // Finally, send message on Discord
+                }
             }
         } catch (error) {
             console.error('Error occurred:', error);
