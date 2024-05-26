@@ -115,14 +115,13 @@ module.exports = {
             lastCommandTime = currentTime;
 
             const userId = interaction.author.id;
+            const guildMember = await interaction.guild.members.fetch(userId);
             const userTraits = getUserTraits(userId);
-            let personalizedQuestion;
-            const userName = interaction.author.globalName ?? interaction.author.globalName;
+            const userName = guildMember.displayName;
+            let personalizedQuestion = `${userName} (${userId}): ${userQuestion}`;
 
             if (userTraits) {
-                personalizedQuestion = `${userTraits.name} (${userId}) (${userTraits.traits}): ${userQuestion}`;
-            } else {
-                personalizedQuestion = `${userName} (${userId}): ${userQuestion}`;
+                personalizedQuestion = `${userName} (${userId}) (${userTraits.traits}): ${userQuestion}`;
             }
 
             includeSystemMessage() // ensure system message is included in prompt
