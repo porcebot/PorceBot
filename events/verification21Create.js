@@ -7,7 +7,7 @@ module.exports = {
         if (!interaction.isUserContextMenuCommand()) {
             return;
         }
-        if (interaction.commandName === 'Assign Verified') {
+        if (interaction.commandName === 'Assign Verified and 21') {
             const rolesToAdd = ['Verified Cutie', 'Active', '21+']
             const rolesToRemove = ['Chaser'];
             const member = await interaction.guild.members.fetch(interaction.targetId);
