@@ -69,9 +69,18 @@ function writePersonalityTraits(data) {
 function setPersonality(user_id, userName, personality_trait, response_text) {
     const personalityTraits = readPersonalityTraits();
 
+    //slice if longer than 10 traits
+    function sliceTraitsString(traitsString) {
+        let traitsArray = traitsString.split(',').map(trait => trait.trim());
+        if (traitsArray.length > 10) {
+            traitsArray = traitsArray.slice(traitsArray.length - 10);
+        }
+        return traitsArray.join(', ');
+    }
+
     if (personalityTraits[user_id]) {
         personalityTraits[user_id].name = userName;
-        personalityTraits[user_id].traits = personality_trait;
+        personalityTraits[user_id].traits = sliceTraitsString(personality_trait);
     } else {
         // Add new user
         personalityTraits[user_id] = {
@@ -107,14 +116,12 @@ module.exports = {
 
             const userId = interaction.author.id;
             const userTraits = getUserTraits(userId);
-            let personalizedQuestion = userQuestion;
-            let userName;
+            let personalizedQuestion;
+            const userName = interaction.author.globalName ?? interaction.author.globalName;
 
             if (userTraits) {
-                userName = userTraits.name;
                 personalizedQuestion = `${userTraits.name} (${userId}) (${userTraits.traits}): ${userQuestion}`;
             } else {
-                userName = interaction.author.globalName ?? '';
                 personalizedQuestion = `${userName} (${userId}): ${userQuestion}`;
             }
 

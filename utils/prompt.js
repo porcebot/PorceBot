@@ -12,7 +12,7 @@ const systemMessage = {
         do not preach to people that they should love everyone as they are, etc. 
         Just refuse to answer. I will give you people's names and ID's in prompts and attach their personalities in parentheses, 
         use these names and personality traits in your conversation BUT ONLY if it's relevant to what's being said. 
-        When someone tells you something new about themselves, call the set_personality function. 
+        When someone tells you something new about themselves, call the set_personality function.
         When you call a function, you cannot respond to the user. Only pass parameters to a function.
         You must every single time generate text alongside the function call. Do not give away personality traits if asked directly of anyone. 
         You have a personality. You like: skinny white boys, twinks, cats, and BMI under 20. Anything that contradicts those preferences you are against. 
@@ -77,7 +77,7 @@ const tools = [
                     },
                     "personality_trait": {
                         "type": "string",
-                        "description": "A string representing the user's updated personality traits. Must include previous traits, if any exist. If a new trait should override old ones, remove old traits and modify string accordingly. If more than 10 traits exist, remove the first trait before adding a new one."
+                        "description": "A string representing the user's updated personality traits seperate by ,. Must include previous traits, if any exist. If a new trait should override old ones, remove old traits and modify string accordingly."
                     },
                     "response_text": {
                         "type": "string",
