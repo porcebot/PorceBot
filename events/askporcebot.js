@@ -197,13 +197,23 @@ module.exports = {
                 addMessage('assistant', botMessagePersonality); // add bot message for future prompts
                 const chunks = splitMessage(botMessagePersonality);
                 for (const chunk of chunks) {
-                    await interaction.reply(chunk).catch(console.error); // Finally, send message on Discord
+                    await interaction.reply({
+                        content: chunk,
+                        allowedMentions: {
+                            users: [userId], // Allow mention for specific user
+                        }
+                    }).catch(console.error);
                 }
             } else {
                 addMessage('assistant', botMessage); // add bot message for future prompts
                 const chunks = splitMessage(botMessage);
                 for (const chunk of chunks) {
-                    await interaction.reply(chunk).catch(console.error); // Finally, send message on Discord
+                    await interaction.reply({
+                        content: chunk,
+                        allowedMentions: {
+                            users: [userId], // Allow mention for specific user
+                        }
+                    }).catch(console.error);
                 }
             }
         } catch (error) {
