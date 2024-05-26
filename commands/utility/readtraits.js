@@ -22,8 +22,8 @@ module.exports = {
         .setDescription('Read traits of users set in ChatGPT conversations.'),
 
     async execute(interaction) {
-        await interaction.deferReply({ ephemeral: true }).catch(console.error);
+        await interaction.deferReply({ ephemeral: false }).catch(console.error);
         const userTraits = getUserTraits();
-        await interaction.editReply({ content: `\`\`\`json\n${JSON.stringify(userTraits, null, 2)}\n\`\`\``, ephemeral: false });
+        await interaction.editReply({ content: `## PorceBot GPT traits of users:\n\`\`\`json\n${JSON.stringify(userTraits, null, 2)}\n\`\`\``, ephemeral: false });
     },
 };
