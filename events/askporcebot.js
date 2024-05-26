@@ -7,7 +7,7 @@ const path = require('path');
 const filePath = path.join(__dirname, 'personalityTraits.json');
 
 let lastCommandTime = 0;
-const cooldownDuration = 4000;
+const cooldownDuration = 2000;
 const ARR_MAX_LENGTH = 11; // Equals to 1 system message, 5 user messages and 5 assistant messages
 
 const openai = new OpenAI({
@@ -108,9 +108,8 @@ module.exports = {
             await interaction.channel.sendTyping();
             const currentTime = Date.now();
             if (currentTime - lastCommandTime < cooldownDuration) {
-                const timeLeft = Math.ceil((cooldownDuration - (currentTime - lastCommandTime)) / 1000); // Time remaining in seconds
-                await interaction.reply({ content: `Mr. PorceBot is not in the mood right now! Please wait ${timeLeft} seconds.`, ephemeral: true }).catch(console.error);
-                return;
+                const waitTime = cooldownDuration - (currentTime - lastCommandTime);
+                await new Promise(resolve => setTimeout(resolve, waitTime));
             }
             lastCommandTime = currentTime;
 
