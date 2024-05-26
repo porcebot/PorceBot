@@ -1,6 +1,6 @@
 const { Events } = require('discord.js');
 const { OpenAI } = require('openai');
-const { systemMessage, personalityTraitsObject, tools } = require('../utils/prompt');
+const { systemMessage, tools } = require('../utils/prompt');
 const { replaceBlacklistedWords } = require('../utils/blacklist');
 const fs = require('fs');
 const path = require('path');

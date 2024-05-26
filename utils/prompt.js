@@ -77,7 +77,7 @@ const tools = [
                     },
                     "personality_trait": {
                         "type": "string",
-                        "description": "A string representing the user's updated personality traits. Must include previous traits, if any exist. If a new trait should override old ones, remove old traits and modify string accordingly."
+                        "description": "A string representing the user's updated personality traits. Must include previous traits, if any exist. If a new trait should override old ones, remove old traits and modify string accordingly. If more than 10 traits exist, remove the first trait before adding a new one."
                     },
                     "response_text": {
                         "type": "string",
