@@ -5,6 +5,8 @@ const { replaceBlacklistedWords } = require('../utils/blacklist');
 const fs = require('fs');
 const path = require('path');
 const filePath = path.join(__dirname, 'personalityTraits.json');
+const tempFilePath = path.join(__dirname, 'personalityTraits.tmp.json');
+
 
 let lastCommandTime = 0;
 const cooldownDuration = 2000;
@@ -15,6 +17,23 @@ const openai = new OpenAI({
 });
 
 let conversationArray = [];
+let fileLock = false;
+
+function acquireLock() {
+    return new Promise(resolve => {
+        const interval = setInterval(() => {
+            if (!fileLock) {
+                fileLock = true;
+                clearInterval(interval);
+                resolve();
+            }
+        }, 50);
+    });
+}
+
+function releaseLock() {
+    fileLock = false;
+}
 
 function includeSystemMessage() {
     if (!conversationArray.some(msg => msg.role === 'system')) {
@@ -49,10 +68,18 @@ function splitMessage(text, maxLength = 2000) {
     return chunks;
 }
 
-function readPersonalityTraits() {
-    if (fs.existsSync(filePath)) {
-        const data = fs.readFileSync(filePath, 'utf-8');
-        return JSON.parse(data);
+async function readPersonalityTraits() {
+    await acquireLock();
+    try {
+        if (fs.existsSync(filePath)) {
+            const data = fs.readFileSync(filePath, 'utf-8');
+            return JSON.parse(data);
+        }
+    } catch (error) {
+        console.error("Failed to read personality traits:", error);
+        throw new Error("Write operation failed");
+    } finally {
+        releaseLock();
     }
     return {};
 }
@@ -62,14 +89,30 @@ function getUserTraits(userId) {
     return personalityTraits[userId] || null;
 }
 
-function writePersonalityTraits(data) {
-    fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf-8');
+async function writePersonalityTraits(data) {
+    await acquireLock();
+    try {
+        // Write to a temporary file first
+        fs.writeFileSync(tempFilePath, JSON.stringify(data, null, 2), 'utf-8');
+        // Rename the temporary file to the actual file
+        fs.renameSync(tempFilePath, filePath);
+    } catch (error) {
+        console.error("Failed to write personality traits:", error);
+        // Remove the temporary file if something went wrong
+        if (fs.existsSync(tempFilePath)) {
+            fs.unlinkSync(tempFilePath);
+        }
+        // Do not proceed if writing fails
+        throw new Error("Write operation failed");
+    } finally {
+        releaseLock();
+    }
 }
 
-function setPersonality(user_id, userName, personality_trait, response_text) {
-    const personalityTraits = readPersonalityTraits();
+async function setPersonality(user_id, userName, personality_trait, response_text) {
+    const personalityTraits = await readPersonalityTraits();
 
-    //slice if longer than 10 traits
+    // Slice if longer than 10 traits
     function sliceTraitsString(traitsString) {
         let traitsArray = traitsString.split(',').map(trait => trait.trim());
         if (traitsArray.length > 10) {
@@ -88,7 +131,8 @@ function setPersonality(user_id, userName, personality_trait, response_text) {
             traits: personality_trait
         };
     }
-    writePersonalityTraits(personalityTraits);
+
+    await writePersonalityTraits(personalityTraits);
     return response_text;
 }
 
@@ -149,7 +193,7 @@ module.exports = {
 
             if (functionParams) {
                 const { user_id, personality_trait, response_text } = JSON.parse(functionParams.arguments)
-                const botMessagePersonality = setPersonality(user_id, userName, personality_trait, response_text);
+                const botMessagePersonality = await setPersonality(user_id, userName, personality_trait, response_text);
                 addMessage('assistant', botMessagePersonality); // add bot message for future prompts
                 const chunks = splitMessage(botMessagePersonality);
                 for (const chunk of chunks) {
