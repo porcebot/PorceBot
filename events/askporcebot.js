@@ -5,6 +5,7 @@ const { replaceBlacklistedWords } = require('../utils/blacklist');
 const fs = require('fs');
 const path = require('path');
 const filePath = path.join(__dirname, 'personalityTraits.json');
+const writeFileAtomic = require('write-file-atomic');
 
 
 let lastCommandTime = 0;
@@ -16,6 +17,7 @@ const openai = new OpenAI({
 });
 
 let conversationArray = [];
+
 
 function includeSystemMessage() {
     if (!conversationArray.some(msg => msg.role === 'system')) {
@@ -63,11 +65,15 @@ function getUserTraits(userId) {
     return personalityTraits[userId] || null;
 }
 
-function writePersonalityTraits(data) {
-    fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf-8');
+async function writePersonalityTraits(data) {
+    try {
+        await writeFileAtomic(filePath, JSON.stringify(data, null, 2), 'utf-8');
+    } catch (error) {
+        console.error('Error writing file:', error);
+    }
 }
 
-function setPersonality(user_id, userName, personality_trait, response_text) {
+async function setPersonality(user_id, userName, personality_trait, response_text) {
     const personalityTraits = readPersonalityTraits();
 
     //slice if longer than 10 traits
@@ -89,7 +95,7 @@ function setPersonality(user_id, userName, personality_trait, response_text) {
             traits: personality_trait
         };
     }
-    writePersonalityTraits(personalityTraits);
+    await writePersonalityTraits(personalityTraits);
     return response_text;
 }
 
