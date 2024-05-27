@@ -17,6 +17,7 @@ const openai = new OpenAI({
 });
 
 let conversationArray = [];
+let botMessage;
 
 
 function includeSystemMessage() {
@@ -149,7 +150,7 @@ module.exports = {
             if (!response || !response.choices[0]) {
                 await interaction.reply(`Erm... I can't answer right now, please try again later!<3`).catch(console.error);
             }
-            let botMessage;
+
             const replyContent = response.choices[0].message.content;
             const functionParams = response.choices?.[0]?.message?.tool_calls?.[0]?.function ?? undefined;
 
