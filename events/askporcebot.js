@@ -159,7 +159,7 @@ module.exports = {
                 const { user_id, personality_trait, response_text } = JSON.parse(functionParams.arguments);
                 botMessage = await setPersonality(user_id, userName, personality_trait, response_text);
             } else {
-                await interaction.reply("Something went wrong, sorry! :c")
+                await interaction.reply("No response generated. Please inform Porce! :c")
                 return;
             }
 
@@ -173,11 +173,10 @@ module.exports = {
                     }
                 }).catch(console.error);
             }
-            console.log(conversationArray)
             return;
 
         } catch (error) {
-            await interaction.reply("Something went wrong, sorry! :c")
+            await interaction.reply(`Something went wrong! Please send this to Mr. Porce: ${error}`)
         }
     },
 };
