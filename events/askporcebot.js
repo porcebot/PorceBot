@@ -5,7 +5,6 @@ const { replaceBlacklistedWords } = require('../utils/blacklist');
 const fs = require('fs');
 const path = require('path');
 const filePath = path.join(__dirname, 'personalityTraits.json');
-const tempFilePath = path.join(__dirname, 'personalityTraits.tmp.json');
 
 
 let lastCommandTime = 0;
@@ -17,23 +16,6 @@ const openai = new OpenAI({
 });
 
 let conversationArray = [];
-let fileLock = false;
-
-function acquireLock() {
-    return new Promise(resolve => {
-        const interval = setInterval(() => {
-            if (!fileLock) {
-                fileLock = true;
-                clearInterval(interval);
-                resolve();
-            }
-        }, 50);
-    });
-}
-
-function releaseLock() {
-    fileLock = false;
-}
 
 function includeSystemMessage() {
     if (!conversationArray.some(msg => msg.role === 'system')) {
@@ -68,18 +50,10 @@ function splitMessage(text, maxLength = 2000) {
     return chunks;
 }
 
-async function readPersonalityTraits() {
-    await acquireLock();
-    try {
-        if (fs.existsSync(filePath)) {
-            const data = fs.readFileSync(filePath, 'utf-8');
-            return JSON.parse(data);
-        }
-    } catch (error) {
-        console.error("Failed to read personality traits:", error);
-        throw new Error("Write operation failed");
-    } finally {
-        releaseLock();
+function readPersonalityTraits() {
+    if (fs.existsSync(filePath)) {
+        const data = fs.readFileSync(filePath, 'utf-8');
+        return JSON.parse(data);
     }
     return {};
 }
@@ -89,30 +63,14 @@ function getUserTraits(userId) {
     return personalityTraits[userId] || null;
 }
 
-async function writePersonalityTraits(data) {
-    await acquireLock();
-    try {
-        // Write to a temporary file first
-        fs.writeFileSync(tempFilePath, JSON.stringify(data, null, 2), 'utf-8');
-        // Rename the temporary file to the actual file
-        fs.renameSync(tempFilePath, filePath);
-    } catch (error) {
-        console.error("Failed to write personality traits:", error);
-        // Remove the temporary file if something went wrong
-        if (fs.existsSync(tempFilePath)) {
-            fs.unlinkSync(tempFilePath);
-        }
-        // Do not proceed if writing fails
-        throw new Error("Write operation failed");
-    } finally {
-        releaseLock();
-    }
+function writePersonalityTraits(data) {
+    fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf-8');
 }
 
-async function setPersonality(user_id, userName, personality_trait, response_text) {
-    const personalityTraits = await readPersonalityTraits();
+function setPersonality(user_id, userName, personality_trait, response_text) {
+    const personalityTraits = readPersonalityTraits();
 
-    // Slice if longer than 10 traits
+    //slice if longer than 10 traits
     function sliceTraitsString(traitsString) {
         let traitsArray = traitsString.split(',').map(trait => trait.trim());
         if (traitsArray.length > 10) {
@@ -131,8 +89,7 @@ async function setPersonality(user_id, userName, personality_trait, response_tex
             traits: personality_trait
         };
     }
-
-    await writePersonalityTraits(personalityTraits);
+    writePersonalityTraits(personalityTraits);
     return response_text;
 }
 
@@ -187,24 +144,21 @@ module.exports = {
             if (!response || !response.choices[0]) {
                 await interaction.reply(`Erm... I can't answer right now, please try again later!<3`).catch(console.error);
             }
+            let botMessage;
             const replyContent = response.choices[0].message.content;
-            const botMessage = replyContent ? replyContent : `Sure, I'll write that down!`;
             const functionParams = response.choices?.[0]?.message?.tool_calls?.[0]?.function ?? undefined;
 
-            if (functionParams) {
-                const { user_id, personality_trait, response_text } = JSON.parse(functionParams.arguments)
-                const botMessagePersonality = await setPersonality(user_id, userName, personality_trait, response_text);
-                addMessage('assistant', botMessagePersonality); // add bot message for future prompts
-                const chunks = splitMessage(botMessagePersonality);
-                for (const chunk of chunks) {
-                    await interaction.reply({
-                        content: chunk,
-                        allowedMentions: {
-                            users: [userId], // Allow mention for specific user
-                        }
-                    }).catch(console.error);
-                }
+            if (replyContent) {
+                botMessage = replyContent;
+            } else if (functionParams) {
+                const { user_id, personality_trait, response_text } = JSON.parse(functionParams.arguments);
+                botMessage = await setPersonality(user_id, userName, personality_trait, response_text);
             } else {
+                await interaction.reply("Something went wrong, sorry! :c")
+                return;
+            }
+
+            try {
                 addMessage('assistant', botMessage); // add bot message for future prompts
                 const chunks = splitMessage(botMessage);
                 for (const chunk of chunks) {
@@ -215,6 +169,10 @@ module.exports = {
                         }
                     }).catch(console.error);
                 }
+                return;
+            } catch {
+                await interaction.reply("Something went wrong, sorry! :c")
+                return;
             }
         } catch (error) {
             console.error('Error occurred:', error);
