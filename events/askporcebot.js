@@ -133,7 +133,6 @@ module.exports = {
             includeSystemMessage() // ensure system message is included in prompt
             const prompt = replaceBlacklistedWords(personalizedQuestion); // Make the question prompt friendly
             addMessage('user', prompt); // add user message to prompt
-            console.log(conversationArray)
 
             const response = await openai.chat.completions.create({
                 model: "gpt-4o",
@@ -164,24 +163,21 @@ module.exports = {
                 return;
             }
 
-            try {
-                addMessage('assistant', botMessage); // add bot message for future prompts
-                const chunks = splitMessage(botMessage);
-                for (const chunk of chunks) {
-                    await interaction.reply({
-                        content: chunk,
-                        allowedMentions: {
-                            users: [userId], // Allow mention for specific user
-                        }
-                    }).catch(console.error);
-                }
-                return;
-            } catch {
-                await interaction.reply("Something went wrong, sorry! :c")
-                return;
+            addMessage('assistant', botMessage); // add bot message for future prompts
+            const chunks = splitMessage(botMessage);
+            for (const chunk of chunks) {
+                await interaction.reply({
+                    content: chunk,
+                    allowedMentions: {
+                        users: [userId], // Allow mention for specific user
+                    }
+                }).catch(console.error);
             }
+            console.log(conversationArray)
+            return;
+
         } catch (error) {
-            console.error('Error occurred:', error);
+            await interaction.reply("Something went wrong, sorry! :c")
         }
     },
 };
