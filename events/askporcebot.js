@@ -4,6 +4,7 @@ const { systemMessage, tools } = require('../utils/prompt');
 const { replaceBlacklistedWords } = require('../utils/blacklist');
 const fs = require('fs');
 const path = require('path');
+const ready = require('./ready');
 const filePath = path.join(__dirname, 'personalityTraits.json');
 const writeFileAtomic = require('write-file-atomic');
 
@@ -136,13 +137,14 @@ module.exports = {
             }
             lastCommandTime = currentTime;
 
+            const botInfo = ready.getBotInfo();
             let botMessage;
             const userId = interaction.author.id;
-            const botId = interaction.mentions.repliedUser.id;
+            const botId = botInfo.id;
             const guildMember = await interaction.guild.members.fetch(userId);
             const userTraits = getUserTraits(userId);
             const userName = guildMember.displayName;
-            const botName = interaction.mentions.repliedUser.username;
+            const botName = botInfo.username;
             let personalizedQuestion = `${userName} (${userId}): ${userQuestion}`;
 
             if (userTraits) {
