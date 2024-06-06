@@ -17,14 +17,7 @@ const openai = new OpenAI({
 });
 
 let conversationArray = [];
-let botMessage;
 
-
-function includeSystemMessage() {
-    if (!conversationArray.some(msg => msg.role === 'system')) {
-        conversationArray.unshift(systemMessage);
-    }
-}
 
 function addMessage(role, content) {
     // Check array size and shift if necessary
@@ -80,8 +73,8 @@ async function setPersonality(user_id, userName, personality_trait, response_tex
     //slice if longer than 10 traits
     function sliceTraitsString(traitsString) {
         let traitsArray = traitsString.split(',').map(trait => trait.trim());
-        if (traitsArray.length > 10) {
-            traitsArray = traitsArray.slice(traitsArray.length - 10);
+        if (traitsArray.length > 6) {
+            traitsArray = traitsArray.slice(traitsArray.length - 6);
         }
         return traitsArray.join(', ');
     }
@@ -100,9 +93,31 @@ async function setPersonality(user_id, userName, personality_trait, response_tex
     return response_text;
 }
 
+function includeSystemMessage(botId) {
+    const AITraits = getUserTraits(botId);
+    let systemMessageModified = systemMessage;
+    if (AITraits) {
+        systemMessageModified.content += ` ${AITraits.traits}`;
+    }
+
+    if (!conversationArray.some(msg => msg.role === 'system')) {
+        conversationArray.unshift(systemMessageModified);
+    }
+}
+
+function removeTraits(conversationArray, userId) {
+    return conversationArray.map(message => {
+        const regex = new RegExp(`\\(${userId}\\) \\([^\\)]*\\)`, 'g');
+        message.content = message.content.replace(regex, `(${userId})`);
+        return message;
+    });
+}
+
+
 module.exports = {
     name: Events.MessageCreate,
     async execute(interaction) {
+
         if (interaction.author.bot) return;
         // Check if the bot is directly mentioned
         const botMentioned = interaction.mentions.users.has(interaction.client.user.id);
@@ -121,25 +136,31 @@ module.exports = {
             }
             lastCommandTime = currentTime;
 
+            let botMessage;
             const userId = interaction.author.id;
+            const botId = interaction.mentions.repliedUser.id;
             const guildMember = await interaction.guild.members.fetch(userId);
             const userTraits = getUserTraits(userId);
             const userName = guildMember.displayName;
+            const botName = interaction.mentions.repliedUser.username;
             let personalizedQuestion = `${userName} (${userId}): ${userQuestion}`;
 
             if (userTraits) {
+                conversationArray = removeTraits(conversationArray, userId);
                 personalizedQuestion = `${userName} (${userId}) (${userTraits.traits}): ${userQuestion}`;
             }
 
-            includeSystemMessage() // ensure system message is included in prompt
+            includeSystemMessage(botId) // ensure system message is included in prompt
             const prompt = replaceBlacklistedWords(personalizedQuestion); // Make the question prompt friendly
             addMessage('user', prompt); // add user message to prompt
+
+            console.log(conversationArray)
 
             const response = await openai.chat.completions.create({
                 model: "gpt-4o",
                 messages: conversationArray,
                 temperature: 1.15,
-                max_tokens: 512,
+                max_tokens: 1024,
                 top_p: 1,
                 frequency_penalty: 0,
                 presence_penalty: 0,
@@ -156,10 +177,19 @@ module.exports = {
 
             if (replyContent) {
                 botMessage = replyContent;
-            } else if (functionParams) {
-                const { user_id, personality_trait, response_text } = JSON.parse(functionParams.arguments);
-                botMessage = await setPersonality(user_id, userName, personality_trait, response_text);
-            } else {
+            }
+
+            if (functionParams) {
+                if (functionParams.name === 'set_behavior') { // Sets bot behavior
+                    const { behavior_type, response_text } = JSON.parse(functionParams.arguments);
+                    botMessage = await setPersonality(botId, botName, behavior_type, response_text);
+                }
+                if (functionParams.name === 'set_interest') { // Sets user traits
+                    const { user_id, personality_trait, response_text } = JSON.parse(functionParams.arguments);
+                    botMessage = await setPersonality(user_id, userName, personality_trait, response_text);
+                }
+            }
+            if (!replyContent && !functionParams) {
                 await interaction.reply("No response generated. Please inform Porce! :c")
                 return;
             }
@@ -178,6 +208,7 @@ module.exports = {
 
         } catch (error) {
             await interaction.reply(`Something went wrong! Please send this to Mr. Porce: ${error}`)
+            console.log(error)
         }
     },
 };
