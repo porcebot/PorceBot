@@ -7,6 +7,7 @@ const path = require('path');
 const ready = require('./ready');
 const filePath = path.join(__dirname, 'personalityTraits.json');
 const writeFileAtomic = require('write-file-atomic');
+const channelFilePath = './channelData.json';
 
 
 let lastCommandTime = 0;
@@ -45,6 +46,16 @@ function splitMessage(text, maxLength = 2000) {
 
     chunks.push(chunk);
     return chunks;
+}
+
+function readChannel() {
+    if (fs.existsSync(channelFilePath)) {
+        const data = fs.readFileSync(channelFilePath, 'utf-8');
+        const JSONData = JSON.parse(data)
+        const keys = Object.keys(JSONData);
+        return keys;
+    }
+    return undefined;
 }
 
 function readPersonalityTraits() {
@@ -128,6 +139,20 @@ module.exports = {
         const userQuestion = botMentioned ? interaction.content.replace(`<@${interaction.client.user.id}>`, '').trim() : interaction.content;
         if (!userQuestion) return;
 
+        let matchingIdFound = false;
+        const allowedChannelsId = readChannel();
+        const channelId = interaction.channel.id ? interaction.channel.id : interaction.channelId;
+
+        if (allowedChannelsId) {
+            for (let i = 0; i < allowedChannelsId.length; i++) {
+                if (allowedChannelsId[i] === channelId) {
+                    matchingIdFound = true;
+                    break;
+                }
+            }
+        }
+        if (!matchingIdFound) return;
+
         try {
             await interaction.channel.sendTyping();
             const currentTime = Date.now();
@@ -155,8 +180,6 @@ module.exports = {
             includeSystemMessage(botId) // ensure system message is included in prompt
             const prompt = replaceBlacklistedWords(personalizedQuestion); // Make the question prompt friendly
             addMessage('user', prompt); // add user message to prompt
-
-            console.log(conversationArray)
 
             const response = await openai.chat.completions.create({
                 model: "gpt-4o",
