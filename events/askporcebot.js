@@ -233,6 +233,7 @@ module.exports = {
 
         } catch (error) {
             await interaction.reply(`Something went wrong! Please send this to Mr. Porce: ${error}`)
+            conversationArray = [];
             console.log(error)
         }
     },
