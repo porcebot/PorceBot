@@ -1,5 +1,16 @@
 const { Events, ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle } = require('discord.js');
 const { replaceTextWithEmojis } = require('../utils/parseEmoji');
+const { badWordsMappedSecondary } = require('../blackListMapped');
+
+function censorBadWords(text) {
+    let censoredText = text;
+    for (let badWord of badWordsMappedSecondary) {
+        // Create a regular expression to match the bad word globally and case-insensitively
+        let regex = new RegExp(badWord, 'gi');
+        censoredText = censoredText.replace(regex, '\\*\\*\\*\\*');
+    }
+    return censoredText;
+}
 
 module.exports = {
     name: Events.InteractionCreate,
@@ -12,10 +23,19 @@ module.exports = {
             const input = interaction.fields.getTextInputValue('confessionInput');
             const usernameField = interaction.fields.getTextInputValue('confessionUserNameInput');
             const imageField = interaction.fields.getTextInputValue('imageInput');
-            // Check for emojis
-            const confession = await replaceTextWithEmojis(input, interaction.guild);
-
+            let confession = await replaceTextWithEmojis(input, interaction.guild);
             let userName = 'Anonymous'
+
+            for (let badWord of badWordsMappedSecondary) {
+                if (confession.includes(badWord)) {
+                    const globalName = interaction.user.globalName;
+                    const fluff = `### HEY EVERYONE! It is me, **${globalName}**, and I'm a dumbass who made a confession containing a banned word! Everyone @ my name and laugh at me! Here is also my confession in case I wrote something embarassing: \n\n`
+                    const tempConfess = censorBadWords(confession);
+                    userName = globalName;
+                    confession = fluff + `${tempConfess}`;
+                    break;
+                }
+            }
 
             if (usernameField) {
                 userName = usernameField;
