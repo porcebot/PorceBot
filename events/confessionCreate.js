@@ -18,9 +18,10 @@ module.exports = {
 
             for (let badWord of badWordsMappedSecondary) {
                 if (confession.includes(badWord)) {
-                    const globalName = interaction.user.globalName;
-                    const fluff = `### HEY EVERYONE! It is me, **${globalName}**, and I'm a dumbass who made a confession containing a banned word! Everyone @ my name and laugh at me! Here is also my confession in case I wrote something embarassing: \n\n`
-                    userName = globalName;
+                    const userId = interaction.user.id;
+                    const guildMember = await interaction.guild.members.fetch(userId);
+                    const fluff = `HEY EVERYONE! It is me, **${guildMember}**, and I'm a dumbass who made a confession containing a banned word! Everyone @ my name and laugh at me! \n\n`
+                    userName = guildMember.displayName;
                     confession = fluff;
                     break;
                 }
