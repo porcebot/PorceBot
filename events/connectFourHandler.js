@@ -1,5 +1,13 @@
 const { Events } = require('discord.js');
 
+const { readLeaderboard, writeLeaderboard } = require('../utils/jsonUtils');
+
+let leaderboard = {};
+
+(async () => {
+    leaderboard = await readLeaderboard();
+})();
+
 module.exports = {
     name: Events.MessageReactionAdd,
     async execute(reaction, user) {
@@ -55,6 +63,7 @@ module.exports = {
 
         // Place the piece
         board[placeRow][col] = game.currentPlayer;
+        const previousPlayer = game.currentPlayer;
         game.currentPlayer = game.currentPlayer === '🔴' ? '🟡' : '🔴';
 
         // Update the message
@@ -64,6 +73,7 @@ module.exports = {
         // Check for a win
         if (checkWin(board, placeRow, col)) {
             await reaction.message.edit(`${formatBoard(board)}\n${user} wins!`);
+            await updateLeaderboard(user.id, user.username, game, previousPlayer);
             reaction.client.connectFourGames.delete(reaction.message.id);
         } else if (board.every(row => row.every(cell => cell !== '⚪'))) {
             await reaction.message.edit(`${formatBoard(board)}\nIt's a tie!`);
@@ -122,4 +132,21 @@ async function updateGameStatus(message, game) {
     const currentPlayerUser = game.players[currentPlayer];
     const status = currentPlayerUser ? `**Next up: ${currentPlayer} ${currentPlayerUser}**\n\n` : '**Game Start**\n\n';
     await message.edit(status + formatBoard(game.board));
+}
+
+async function updateLeaderboard(winnerId, winnerUsername, game, previousPlayer) {
+    if (!leaderboard[winnerId]) {
+        leaderboard[winnerId] = { username: winnerUsername, wins: 0, losses: 0 };
+    }
+    leaderboard[winnerId].wins += 1;
+
+    // Update losses for the other player
+    const loserId = Object.keys(game.playerSides).find(id => id !== winnerId);
+    const loserUsername = game.players[previousPlayer === '🔴' ? '🟡' : '🔴'].username;
+    if (!leaderboard[loserId]) {
+        leaderboard[loserId] = { username: loserUsername, wins: 0, losses: 0 };
+    }
+    leaderboard[loserId].losses += 1;
+
+    await writeLeaderboard(leaderboard);
 }
