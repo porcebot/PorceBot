@@ -15,8 +15,20 @@ module.exports = {
 
         const userId = user.id;
 
+        // Check if the player is making their first move
         if (!game.playerSides[userId]) {
+            if (Object.keys(game.playerSides).length >= 2) {
+                await reaction.message.channel.send(`${user}, only two players can play at a time!`).then(msg => setTimeout(() => msg.delete(), 5000));
+                reaction.users.remove(user); // Remove the player's reaction
+                return;
+            }
             game.playerSides[userId] = game.currentPlayer; // Assign the current side to the player
+            game.players[game.currentPlayer] = user; // Track the player
+
+            // Update the message to show the current player's turn if both players have joined
+            if (Object.keys(game.playerSides).length === 2) {
+                await updateGameStatus(reaction.message, game);
+            }
         }
 
         // Check if the player is trying to play on the correct side
@@ -37,6 +49,7 @@ module.exports = {
         }
         if (placeRow === -1) {
             reaction.message.channel.send(`${user}, this column is full!`).then(msg => setTimeout(() => msg.delete(), 5000));
+            reaction.users.remove(user); // Remove the player's reaction
             return;
         }
 
@@ -45,7 +58,7 @@ module.exports = {
         game.currentPlayer = game.currentPlayer === '🔴' ? '🟡' : '🔴';
 
         // Update the message
-        await reaction.message.edit(formatBoard(board));
+        await updateGameStatus(reaction.message, game);
         reaction.users.remove(user);
 
         // Check for a win
@@ -102,4 +115,11 @@ function checkWin(board, row, col) {
     }
 
     return false;
+}
+
+async function updateGameStatus(message, game) {
+    const currentPlayer = game.currentPlayer;
+    const currentPlayerUser = game.players[currentPlayer];
+    const status = currentPlayerUser ? `**Next up: ${currentPlayer} ${currentPlayerUser}**\n\n` : '**Game Start**\n\n';
+    await message.edit(status + formatBoard(game.board));
 }

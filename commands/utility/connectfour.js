@@ -7,7 +7,7 @@ module.exports = {
     async execute(interaction) {
         const board = Array(6).fill(null).map(() => Array(7).fill('⚪')); // Initial empty board
 
-        const message = await interaction.reply({ content: formatBoard(board), fetchReply: true });
+        const message = await interaction.reply({ content: '**Game Start**\n\n' + formatBoard(board), fetchReply: true });
 
         // Add reactions 1 to 7
         const reactions = ['\u0031\uFE0F\u20E3', '\u0032\uFE0F\u20E3', '\u0033\uFE0F\u20E3', '\u0034\uFE0F\u20E3', '\u0035\uFE0F\u20E3', '\u0036\uFE0F\u20E3', '\u0037\uFE0F\u20E3'];
@@ -20,6 +20,7 @@ module.exports = {
             board,
             currentPlayer: '🔴', // Starting with red
             playerSides: {}, // Initialize player sides
+            players: {} // Initialize players
         });
     },
 };
