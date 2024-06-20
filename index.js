@@ -9,11 +9,13 @@ const client = new Client({
         GatewayIntentBits.Guilds, // For guild-related information
         GatewayIntentBits.GuildMembers, // For fetching guild members
         GatewayIntentBits.GuildMessages, // For receiving guild messages
-        GatewayIntentBits.MessageContent // For reading message content
+        GatewayIntentBits.MessageContent, // For reading message content
+        GatewayIntentBits.GuildMessageReactions // For handling message reactions
     ]
 });
 
 client.commands = new Collection();
+client.connectFourGames = new Map();
 const foldersPath = path.join(__dirname, 'commands');
 const commandFolders = fs.readdirSync(foldersPath);
 
