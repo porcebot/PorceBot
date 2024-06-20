@@ -1,9 +1,10 @@
 // events/ticTacToeHandler.js
-const { Events, ButtonInteraction, EmbedBuilder } = require('discord.js');
+const { Events, EmbedBuilder } = require('discord.js');
 
 let board = Array(9).fill(null);
 let currentPlayer = 'X';
 let moves = [];
+let playerSides = {};
 
 module.exports = {
     name: Events.InteractionCreate,
@@ -11,9 +12,21 @@ module.exports = {
         if (!interaction.isButton() || !interaction.customId.match(/^\d+$/)) return;
 
 
+        const userId = interaction.user.id;
         const index = parseInt(interaction.customId);
         if (board[index] !== null) {
             await interaction.reply({ content: 'Invalid move!', ephemeral: true });
+            return;
+        }
+
+        // Check if the player is making their first move
+        if (!playerSides[userId]) {
+            playerSides[userId] = currentPlayer; // Assign the current side to the player
+        }
+
+        // Check if the player is trying to play on the correct side
+        if (playerSides[userId] !== currentPlayer) {
+            await interaction.reply({ content: `You can only play as ${playerSides[userId]}!`, ephemeral: true });
             return;
         }
 
@@ -59,6 +72,7 @@ function resetBoard() {
     board = Array(9).fill(null);
     currentPlayer = 'X';
     moves = [];
+    playerSides = {};
 }
 
 function createEmbed(moves, status) {
