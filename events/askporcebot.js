@@ -5,7 +5,7 @@ const { replaceBlacklistedWords } = require('../utils/blacklist');
 const fs = require('fs');
 const path = require('path');
 const ready = require('./ready');
-const filePath = path.join(__dirname, 'personalityTraits.json');
+const filePath = path.join(__dirname, '..', 'data', 'personalityTraits.json');
 const writeFileAtomic = require('write-file-atomic');
 const channelFilePath = './channelData.json';
 
