@@ -37,5 +37,22 @@ module.exports = {
             writePersonalityTraits(personalityTraits);
             await interaction.reply({ content: 'Your personality description has been saved!', ephemeral: true });
         }
+        if (interaction.customId === 'setpersonalityothers') {
+            const description = interaction.fields.getTextInputValue('description');
+            const targetUser = interaction.options.getUser('target');
+            const userId = targetUser.id;
+            const guildMember = await interaction.guild.members.fetch(userId);
+
+            const personalityTraits = readPersonalityTraits();
+            const displayName = guildMember.displayName;
+
+            personalityTraits[userId] = {
+                name: displayName,
+                traits: description
+            };
+
+            writePersonalityTraits(personalityTraits);
+            await interaction.reply({ content: 'Their personality description has been saved!', ephemeral: true });
+        }
     },
 };
