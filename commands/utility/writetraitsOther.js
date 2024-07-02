@@ -15,6 +15,15 @@ module.exports = {
         const modal = new ModalBuilder()
             .setCustomId('setpersonalityothers')
             .setTitle('Set Their Personality');
+        const userIdInput = new TextInputBuilder()
+            .setMaxLength(30)
+            .setMinLength(1)
+            .setRequired(true)
+            .setPlaceholder('User ID')
+            .setLabel("User ID")
+            .setValue(interaction.options.getUser('target').id)
+            .setCustomId('id')
+            .setStyle(TextInputStyle.Short);
 
         const descriptionInput = new TextInputBuilder()
             .setCustomId('description')
@@ -23,8 +32,9 @@ module.exports = {
             .setMaxLength(100)
             .setRequired(true);
 
-        const firstActionRow = new ActionRowBuilder().addComponents(descriptionInput);
-        modal.addComponents(firstActionRow);
+        const firstActionRow = new ActionRowBuilder().addComponents(userIdInput);
+        const secondActionRow = new ActionRowBuilder().addComponents(descriptionInput);
+        modal.addComponents(firstActionRow, secondActionRow);
 
         await interaction.showModal(modal);
     },

@@ -39,8 +39,7 @@ module.exports = {
         }
         if (interaction.customId === 'setpersonalityothers') {
             const description = interaction.fields.getTextInputValue('description');
-            const targetUser = interaction.options.getUser('target');
-            const userId = targetUser.id;
+            const userId = interaction.fields.getTextInputValue('id');
             const guildMember = await interaction.guild.members.fetch(userId);
 
             const personalityTraits = readPersonalityTraits();
