@@ -71,6 +71,27 @@ function getUserTraits(userId) {
     return personalityTraits[userId] || null;
 }
 
+function getUserTraitsString() {
+    const personalityTraits = readPersonalityTraits();
+    let resultString = ``;
+
+    for (const userId in personalityTraits) {
+        if (Object.prototype.hasOwnProperty.call(personalityTraits, userId)) {
+            const user = personalityTraits[userId];
+            const name = user.name;
+            const traits = user.traits;
+            resultString += `${userId} ${name}: (${traits}), `;
+        }
+    }
+
+    // Remove the trailing comma and space at the end
+    if (resultString.endsWith(', ')) {
+        resultString = resultString.slice(0, -2);
+    }
+
+    return resultString;
+}
+
 async function writePersonalityTraits(data) {
     try {
         await writeFileAtomic(filePath, JSON.stringify(data, null, 2), 'utf-8');
@@ -107,9 +128,15 @@ async function setPersonality(user_id, userName, personality_trait, response_tex
 
 function includeSystemMessage(botId) {
     const AITraits = getUserTraits(botId);
+    const userTraits = getUserTraitsString();
     let systemMessageModified = systemMessage;
+
+    if (userTraits) {
+        systemMessageModified.content += `NOTE: I will give you people's names and ID's below and their interests in parentheses. Use them when it is related to the conversation: ${userTraits}`;
+    }
+
     if (AITraits) {
-        systemMessageModified.content += ` ${AITraits.traits}`;
+        systemMessageModified.content += `NOTE: Someone has given you instructions. You must follow these rules, always, until told otherwise: ${AITraits.traits}`;
     }
 
     if (!conversationArray.some(msg => msg.role === 'system')) {
@@ -174,7 +201,7 @@ module.exports = {
 
             if (userTraits) {
                 conversationArray = removeTraits(conversationArray, userId);
-                personalizedQuestion = `${userName} (${userId}) (${userTraits.traits}): ${userQuestion}`;
+                personalizedQuestion = `${userName} (${userId}): ${userQuestion}`;
             }
 
             includeSystemMessage(botId) // ensure system message is included in prompt
@@ -185,7 +212,7 @@ module.exports = {
                 model: "gpt-4o",
                 messages: conversationArray,
                 temperature: 1.15,
-                max_tokens: 1024,
+                max_tokens: 2048,
                 top_p: 1,
                 frequency_penalty: 0,
                 presence_penalty: 0,
@@ -229,10 +256,11 @@ module.exports = {
                     }
                 }).catch(console.error);
             }
+            console.log(conversationArray)
             return;
 
         } catch (error) {
-            await interaction.reply(`Something went wrong! Please send this to Mr. Porce: ${error}`)
+            await interaction.reply(`Erm... I feel a bit dizzy.`)
             conversationArray = [];
             console.log(error)
         }

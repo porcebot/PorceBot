@@ -12,9 +12,9 @@ module.exports = {
 
         const descriptionInput = new TextInputBuilder()
             .setCustomId('description')
-            .setLabel('Describe yourself (max 200 characters)')
+            .setLabel('Describe yourself (max 100 characters)')
             .setStyle(TextInputStyle.Paragraph)
-            .setMaxLength(200)
+            .setMaxLength(100)
             .setRequired(true);
 
         const firstActionRow = new ActionRowBuilder().addComponents(descriptionInput);
