@@ -4,3 +4,6 @@ node_modules/
 /activeUsers.json
 events/personalityTraits.json
 /events/personalityTraits.json
+channelData.json
+data/leaderboard.json
+data/personalityTraits.json

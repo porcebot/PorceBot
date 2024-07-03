@@ -19,6 +19,7 @@ const openai = new OpenAI({
 });
 
 let conversationArray = [];
+const recencyBiasMap = new Map();
 
 
 function addMessage(role, content) {
@@ -71,26 +72,35 @@ function getUserTraits(userId) {
     return personalityTraits[userId] || null;
 }
 
-function getUserTraitsString() {
+
+function getUserTraitsString(botId) {
     const personalityTraits = readPersonalityTraits();
     let resultString = ``;
 
-    for (const userId in personalityTraits) {
-        if (Object.prototype.hasOwnProperty.call(personalityTraits, userId)) {
+    // Get the top 5 most recent users
+    const recentUsers = [...recencyBiasMap.entries()]
+        .sort((a, b) => b[1] - a[1]) // Sort by date, most recent first
+        .slice(0, 5) // Take the top 5
+        .map(entry => entry[0]); // Extract the userId
+
+    for (const userId of Object.keys(personalityTraits)) {
+        if (recentUsers.includes(userId)) {
             const user = personalityTraits[userId];
             const name = user.name;
             const traits = user.traits;
-            resultString += `${userId} ${name}: (${traits}), `;
+            if (userId !== botId) {
+                resultString += `(${name}): ${traits}, `;
+            }
         }
     }
 
-    // Remove the trailing comma and space at the end
     if (resultString.endsWith(', ')) {
         resultString = resultString.slice(0, -2);
     }
 
     return resultString;
 }
+
 
 async function writePersonalityTraits(data) {
     try {
@@ -103,7 +113,7 @@ async function writePersonalityTraits(data) {
 async function setPersonality(user_id, userName, personality_trait, response_text) {
     const personalityTraits = readPersonalityTraits();
 
-    //slice if longer than 10 traits
+    // Function to slice traits string if longer than 6 traits
     function sliceTraitsString(traitsString) {
         let traitsArray = traitsString.split(',').map(trait => trait.trim());
         if (traitsArray.length > 6) {
@@ -113,8 +123,10 @@ async function setPersonality(user_id, userName, personality_trait, response_tex
     }
 
     if (personalityTraits[user_id]) {
-        personalityTraits[user_id].name = userName;
-        personalityTraits[user_id].traits = sliceTraitsString(personality_trait);
+        // Append the new trait to existing traits
+        let existingTraits = personalityTraits[user_id].traits;
+        let newTraitsString = `${existingTraits}, ${personality_trait}`;
+        personalityTraits[user_id].traits = sliceTraitsString(newTraitsString);
     } else {
         // Add new user
         personalityTraits[user_id] = {
@@ -122,32 +134,59 @@ async function setPersonality(user_id, userName, personality_trait, response_tex
             traits: personality_trait
         };
     }
+
+    // Ensure the name is always updated
+    personalityTraits[user_id].name = userName;
+
     await writePersonalityTraits(personalityTraits);
     return response_text;
 }
 
+async function updateAIPersonality(bot_id, updated_behaviors, response_text) {
+    const personalityTraits = readPersonalityTraits();
+    if (personalityTraits[bot_id]) {
+        personalityTraits[bot_id].traits = updated_behaviors;
+    }
+    await writePersonalityTraits(personalityTraits);
+    return response_text;
+}
+
+
 function includeSystemMessage(botId) {
-    const AITraits = getUserTraits(botId);
-    const userTraits = getUserTraitsString();
-    let systemMessageModified = systemMessage;
+    let AITraits = getUserTraits(botId);
+    let userTraits = getUserTraitsString(botId);
+
+    // Create a new object for systemMessageModified to avoid modifying the original systemMessage
+    let systemMessageModified = {
+        ...systemMessage, // Shallow copy the properties of systemMessage
+        content: systemMessage.content // Initialize content with the original systemMessage content
+    };
 
     if (userTraits) {
-        systemMessageModified.content += `NOTE: I will give you people's names and ID's below and their interests in parentheses. Use them when it is related to the conversation: ${userTraits}`;
+        systemMessageModified.content += ` NOTE: I will give you people's names and ID's below and their interests in parentheses. Use them when it is related to the conversation: ${userTraits} `;
     }
 
     if (AITraits) {
-        systemMessageModified.content += `NOTE: Someone has given you instructions. You must follow these rules, always, until told otherwise: ${AITraits.traits}`;
+        systemMessageModified.content += ` NOTE: Someone has given you instructions. You must follow these rules, always, until told otherwise: ${AITraits.traits}`;
     }
 
-    if (!conversationArray.some(msg => msg.role === 'system')) {
+    const systemMessageIndex = conversationArray.findIndex(msg => msg.role === 'system');
+
+    if (systemMessageIndex !== -1) {
+        // Update the existing system message
+        conversationArray[systemMessageIndex] = systemMessageModified;
+    } else {
+        // Insert the new system message if none exists
         conversationArray.unshift(systemMessageModified);
     }
+
 }
 
-function removeTraits(conversationArray, userId) {
+
+function removeTraits(conversationArray, userName) {
     return conversationArray.map(message => {
-        const regex = new RegExp(`\\(${userId}\\) \\([^\\)]*\\)`, 'g');
-        message.content = message.content.replace(regex, `(${userId})`);
+        const regex = new RegExp(`\\(${userName}\\) \\([^\\)]*\\)`, 'g');
+        message.content = message.content.replace(regex, `(${userName})`);
         return message;
     });
 }
@@ -192,16 +231,17 @@ module.exports = {
             const botInfo = ready.getBotInfo();
             let botMessage;
             const userId = interaction.author.id;
+            recencyBiasMap.set(userId, Date.now());
             const botId = botInfo.id;
             const guildMember = await interaction.guild.members.fetch(userId);
             const userTraits = getUserTraits(userId);
             const userName = guildMember.displayName;
             const botName = botInfo.username;
-            let personalizedQuestion = `${userName} (${userId}): ${userQuestion}`;
+            let personalizedQuestion = `(${userName}) ${userQuestion}`;
 
             if (userTraits) {
-                conversationArray = removeTraits(conversationArray, userId);
-                personalizedQuestion = `${userName} (${userId}): ${userQuestion}`;
+                conversationArray = removeTraits(conversationArray, userName);
+                personalizedQuestion = `(${userName}) ${userQuestion}`;
             }
 
             includeSystemMessage(botId) // ensure system message is included in prompt
@@ -211,17 +251,18 @@ module.exports = {
             const response = await openai.chat.completions.create({
                 model: "gpt-4o",
                 messages: conversationArray,
-                temperature: 1.15,
-                max_tokens: 2048,
+                temperature: 1.20,
+                max_tokens: 256,
                 top_p: 1,
-                frequency_penalty: 0,
-                presence_penalty: 0,
+                frequency_penalty: 0.5,
+                presence_penalty: 0.5,
                 tools: tools,
                 tool_choice: 'auto'
             });
 
             if (!response || !response.choices[0]) {
                 await interaction.reply(`Erm... I can't answer right now, please try again later!<3`).catch(console.error);
+                return;
             }
 
             const replyContent = response.choices[0].message.content;
@@ -236,10 +277,16 @@ module.exports = {
                     const { behavior_type, response_text } = JSON.parse(functionParams.arguments);
                     botMessage = await setPersonality(botId, botName, behavior_type, response_text);
                 }
+                if (functionParams.name === 'update_behaviors') { // Sets bot behavior
+                    const { updated_behaviors, response_text } = JSON.parse(functionParams.arguments);
+                    botMessage = await updateAIPersonality(botId, updated_behaviors, response_text);
+                }
+                /*
                 if (functionParams.name === 'set_interest') { // Sets user traits
                     const { user_id, personality_trait, response_text } = JSON.parse(functionParams.arguments);
                     botMessage = await setPersonality(user_id, userName, personality_trait, response_text);
                 }
+                    */
             }
             if (!replyContent && !functionParams) {
                 await interaction.reply("No response generated. Please inform Porce! :c")
@@ -257,6 +304,7 @@ module.exports = {
                 }).catch(console.error);
             }
             console.log(conversationArray)
+            //console.log(response)
             return;
 
         } catch (error) {
