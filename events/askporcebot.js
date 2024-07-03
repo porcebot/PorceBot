@@ -1,14 +1,15 @@
 const { Events } = require('discord.js');
 const { OpenAI } = require('openai');
-const { systemMessage, tools } = require('../utils/prompt');
+const { tools } = require('../utils/prompt');
 const { replaceBlacklistedWords } = require('../utils/blacklist');
 const fs = require('fs');
 const path = require('path');
+const systemMessageEmitter = require('./events');
 const ready = require('./ready');
 const filePath = path.join(__dirname, '..', 'data', 'personalityTraits.json');
+const filePathSystem = path.join(__dirname, '..', 'data', 'systemPrompt.json');
 const writeFileAtomic = require('write-file-atomic');
 const channelFilePath = './channelData.json';
-
 
 let lastCommandTime = 0;
 const cooldownDuration = 2000;
@@ -21,6 +22,22 @@ const openai = new OpenAI({
 let conversationArray = [];
 const recencyBiasMap = new Map();
 
+let systemMessage = loadSystemMessage();
+
+function loadSystemMessage() {
+    try {
+        const data = fs.readFileSync(filePathSystem, 'utf-8');
+        return JSON.parse(data);
+    } catch (error) {
+        console.error('Error loading system message:', error);
+        return { role: 'system', content: '' };
+    }
+}
+
+systemMessageEmitter.on('systemMessageUpdated', (newMessage) => {
+    console.log('System message updated:', newMessage);
+    systemMessage = newMessage; // Update the global variable
+});
 
 function addMessage(role, content) {
     // Check array size and shift if necessary

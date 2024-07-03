@@ -2,6 +2,8 @@ const { Events } = require('discord.js');
 const path = require('path');
 const fs = require('fs');
 const filePath = path.join(__dirname, '..', 'data', 'personalityTraits.json');
+const filePathSystem = path.join(__dirname, '..', 'data', 'systemPrompt.json');
+const systemMessageEmitter = require('./events');
 
 function readPersonalityTraits() {
     if (fs.existsSync(filePath)) {
@@ -13,6 +15,11 @@ function readPersonalityTraits() {
 
 function writePersonalityTraits(traits) {
     fs.writeFileSync(filePath, JSON.stringify(traits, null, 2), 'utf-8');
+}
+
+function writeSystemPrompt(system_prompt) {
+    fs.writeFileSync(filePathSystem, JSON.stringify(system_prompt, null, 2), 'utf-8');
+    systemMessageEmitter.emit('systemMessageUpdated', system_prompt);
 }
 
 module.exports = {
@@ -52,6 +59,16 @@ module.exports = {
 
             writePersonalityTraits(personalityTraits);
             await interaction.reply({ content: 'Their personality description has been saved!', ephemeral: true });
+        }
+        if (interaction.customId === 'setsystemprompt') {
+            const description = interaction.fields.getTextInputValue('description');
+
+            const systemMessage = {
+                role: 'system',
+                content: description,
+            };
+            writeSystemPrompt(systemMessage);
+            await interaction.reply({ content: 'System prompt set.', ephemeral: true });
         }
     },
 };
