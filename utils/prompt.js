@@ -28,7 +28,7 @@ const tools = [
                 "properties": {
                     "behavior_type": {
                         "type": "string",
-                        "description": "A string representing the AI's updated behavior written in natural language. String does not end in a comma or a period. Make an attempt for brevity. Example: Likes boys"
+                        "description": "A string representing the AI's updated behavior written in natural language. String includes one behavior only. String cannot include a comma, as commas are used as an operator to seperate personalities. Make an attempt for brevity. Example: Likes boys"
                     },
                     "response_text": {
                         "type": "string",
@@ -49,7 +49,7 @@ const tools = [
                 "properties": {
                     "updated_behaviors": {
                         "type": "string",
-                        "description": "AI will examine instructions defined by users in the system prompt and update instruction when AI recognizes user request is in conflict with existing instruction. Example: Current instructions are written as: Likes chocolate cake, Dislikes traffic. User tells AI that AI dislikes chocolate cake. AI is aware of a conflict. AI must therefore return an updated instructions string: Dislikes chocolate cake, Dislikes traffic. Seperate instructions with comma, do not use periods."
+                        "description": "AI will examine instructions defined by users in the system prompt after the STATIC PERSONALITY and make modifications to the instruction set when AI recognizes user request is in conflict with an existing instruction. Example: Current instructions are written as: Likes chocolate cake, Dislikes traffic. User tells AI that AI dislikes chocolate cake. AI is aware of a conflict. AI must therefore return an updated instructions string: Dislikes chocolate cake, Dislikes traffic. Seperate instructions with comma, do not use periods."
                     },
                     "response_text": {
                         "type": "string",
