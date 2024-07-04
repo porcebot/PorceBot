@@ -271,8 +271,8 @@ module.exports = {
                 temperature: 1.20,
                 max_tokens: 256,
                 top_p: 1,
-                frequency_penalty: 0.5,
-                presence_penalty: 0.5,
+                frequency_penalty: 0.25,
+                presence_penalty: 0.25,
                 tools: tools,
                 tool_choice: 'auto'
             });
