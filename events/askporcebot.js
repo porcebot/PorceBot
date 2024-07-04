@@ -268,7 +268,7 @@ module.exports = {
             const response = await openai.chat.completions.create({
                 model: "gpt-4o",
                 messages: conversationArray,
-                temperature: 1.20,
+                temperature: 1,
                 max_tokens: 256,
                 top_p: 1,
                 frequency_penalty: 0.25,
