@@ -8,3 +8,6 @@ channelData.json
 data/leaderboard.json
 data/personalityTraits.json
 data/systemPrompt.json
+data/commandConfig.json
+data/hugCounts.json
+data/prompts.json
