@@ -66,8 +66,8 @@ module.exports = {
         const hugPrompts = prompts.hugs;
         const randomPromptTemplate = hugPrompts[Math.floor(Math.random() * hugPrompts.length)];
         const randomPrompt = randomPromptTemplate
-            .replace('{hugger}', targetDisplayNameTag)
-            .replace('{target}', huggingDisplayNameTag)
+            .replace('{hugger}', huggingDisplayNameTag)
+            .replace('{target}', targetDisplayNameTag)
             .replace('{amount}', hugCounts[targetUserId]);
 
         // Create the embed message
@@ -79,6 +79,6 @@ module.exports = {
             .setColor(0x0099ff)
 
         // Send the embed message as a reply
-        await interaction.reply({ embeds: [embed] });
+        await interaction.reply({ content: targetDisplayNameTag, embeds: [embed] });
     },
 };
