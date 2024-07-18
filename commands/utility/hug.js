@@ -80,5 +80,47 @@ module.exports = {
 
         // Send the embed message as a reply
         await interaction.reply({ content: targetDisplayNameTag, embeds: [embed] });
+
+        const filter = response => response.author.id === targetUser.id && response.content.toLowerCase() === 'e';
+        const collector = interaction.channel.createMessageCollector({ filter, time: 5000 });
+
+        collector.on('collect', async response => {
+            if (fs.existsSync(filePath)) {
+                const rawData = fs.readFileSync(filePath);
+                hugCounts = JSON.parse(rawData);
+            }
+            // Hugging back logic
+            hugCounts[huggingUser.id] = hugCounts[huggingUser.id] || 0;
+            hugCounts[huggingUser.id]++;
+            hugCounts[targetUserId]--;
+            fs.writeFileSync(filePath, JSON.stringify(hugCounts, null, 4));
+
+            let prompts = [];
+            if (fs.existsSync(promptsFilePath)) {
+                const rawData = fs.readFileSync(promptsFilePath);
+                prompts = JSON.parse(rawData);
+            }
+
+            const randomGifPrompts = prompts.parryGifs;
+            const randomGif = randomGifPrompts[Math.floor(Math.random() * randomGifPrompts.length)];
+            const titlePrompts = prompts.parryTitle;
+            const randomTitlePrompt = titlePrompts[Math.floor(Math.random() * titlePrompts.length)];
+            const title = randomTitlePrompt
+                .replace('{target}', targetDisplayName)
+                .replace('{amount}', hugCounts[targetUserId]);
+
+            const randomPromptBack = randomPromptTemplate
+                .replace('{hugger}', targetDisplayNameTag)
+                .replace('{target}', huggingDisplayNameTag)
+                .replace('{amount}', hugCounts[huggingUser.id]);
+
+            const embedBack = new EmbedBuilder()
+                .setTitle(title)
+                .setDescription(randomPromptBack)
+                .setImage(randomGif)
+                .setColor(0x0099ff);
+
+            await interaction.followUp({ content: huggingDisplayNameTag, embeds: [embedBack] });
+        });
     },
 };
